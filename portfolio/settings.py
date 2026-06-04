@@ -1,4 +1,5 @@
 import os
+import cloudinary
 from pathlib import Path
 from datetime import timedelta
 
@@ -116,16 +117,31 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudinary — production media storage (active only when CLOUDINARY_CLOUD_NAME is set)
+# Cloudinary — production media storage
+# Supports CLOUDINARY_URL (cloudinary://API_KEY:API_SECRET@CLOUD_NAME)
+# or individual CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_SECRET vars
+_cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
 _cloudinary_cloud = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-if _cloudinary_cloud:
+
+if _cloudinary_url or _cloudinary_cloud:
+    if _cloudinary_url:
+        # SDK auto-parses CLOUDINARY_URL from the environment
+        cloudinary.config(secure=True)
+        _cloudinary_cloud = cloudinary.config().cloud_name
+    else:
+        cloudinary.config(
+            cloud_name=_cloudinary_cloud,
+            api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
+            api_secret=os.environ.get('CLOUDINARY_SECRET', ''),
+            secure=True,
+        )
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': _cloudinary_cloud,
-        'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-        'API_SECRET': os.environ.get('CLOUDINARY_SECRET', ''),
+        'CLOUD_NAME': cloudinary.config().cloud_name,
+        'API_KEY': cloudinary.config().api_key,
+        'API_SECRET': cloudinary.config().api_secret,
     }
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = f'https://res.cloudinary.com/{_cloudinary_cloud}/'
+    MEDIA_URL = f'https://res.cloudinary.com/{cloudinary.config().cloud_name}/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
