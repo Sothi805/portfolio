@@ -112,6 +112,7 @@ class ForumThreadDetailView(View):
 
         thread = self.get_thread(category_slug, thread_slug)
         action = request.POST.get('action', 'reply')
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
         if action == 'reply':
             content = request.POST.get('content', '').strip()
@@ -123,9 +124,11 @@ class ForumThreadDetailView(View):
                 except (ForumReply.DoesNotExist, ValueError):
                     parent = None
             if not content:
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': 'Reply cannot be empty.'}, status=400)
                 messages.error(request, 'Reply cannot be empty.')
             else:
-                ForumReply.objects.create(thread=thread, user=request.user, content=content, parent=parent)
+                reply = ForumReply.objects.create(thread=thread, user=request.user, content=content, parent=parent)
                 # Award points
                 try:
                     from .tasks import award_points
@@ -145,6 +148,18 @@ class ForumThreadDetailView(View):
                         )
                 except Exception:
                     pass
+                if is_ajax:
+                    return JsonResponse({
+                        'status': 'ok',
+                        'reply': {
+                            'id': reply.id,
+                            'username': request.user.username,
+                            'avatar': request.user.avatar.url if request.user.avatar else None,
+                            'content': reply.content,
+                            'parent_id': parent.id if parent else None,
+                            'upvotes': 0,
+                        }
+                    })
                 messages.success(request, 'Reply posted!')
 
         elif action == 'upvote_thread':
@@ -153,10 +168,14 @@ class ForumThreadDetailView(View):
             )
             if created:
                 ForumThread.objects.filter(pk=thread.pk).update(upvotes=thread.upvotes + 1)
-                messages.success(request, 'Upvoted!')
             else:
                 vote.delete()
                 ForumThread.objects.filter(pk=thread.pk).update(upvotes=max(0, thread.upvotes - 1))
+            current_count = ForumThread.objects.get(pk=thread.pk).upvotes
+            if is_ajax:
+                return JsonResponse({'status': 'ok', 'upvoted': created, 'count': current_count})
+            if created:
+                messages.success(request, 'Upvoted!')
 
         elif action == 'flag':
             reason = request.POST.get('reason', 'other')
@@ -166,6 +185,8 @@ class ForumThreadDetailView(View):
                 reported_by=request.user,
                 defaults={'reason': reason}
             )
+            if is_ajax:
+                return JsonResponse({'status': 'ok'})
             messages.success(request, 'Thread reported for review.')
 
         return redirect('forum_thread_detail', category_slug=category_slug, thread_slug=thread_slug)
@@ -248,6 +269,10 @@ class UpvoteReplyView(LoginRequiredMixin, View):
         else:
             vote.delete()
             ForumReply.objects.filter(pk=reply.pk).update(upvotes=max(0, reply.upvotes - 1))
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        if is_ajax:
+            current_count = ForumReply.objects.get(pk=reply.pk).upvotes
+            return JsonResponse({'status': 'ok', 'upvoted': created, 'count': current_count})
         return redirect(
             'forum_thread_detail',
             category_slug=reply.thread.category.slug,

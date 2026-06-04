@@ -2,21 +2,21 @@
 <div class="p-md">
   <div class="flex items-center justify-between mb-sm">
     <h4 class="font-headline-sm text-headline-sm text-on-surface">Notifications</h4>
-    <form method="post" action="{% url 'notifications_mark_all_read' %}">
+    <form method="post" id="mark-all-read-form" action="{% url 'notifications_mark_all_read' %}">
       {% csrf_token %}
       <button class="font-label-sm text-label-sm text-primary hover:underline">Mark all read</button>
     </form>
   </div>
   <div class="flex flex-col gap-xs max-h-80 overflow-y-auto">
     {% for notif in user.notifications.all|slice:":10" %}
-    <div class="flex items-start gap-sm p-xs rounded-lg hover:bg-surface-container transition-colors {% if not notif.read %}bg-surface-container-low{% endif %}">
+    <div class="flex items-start gap-sm p-xs rounded-lg hover:bg-surface-container transition-colors notif-item {% if not notif.read %}bg-surface-container-low{% endif %}">
       <span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">{{ notif.get_icon }}</span>
       <div class="flex-grow min-w-0">
         <p class="font-label-md text-label-md text-on-surface truncate">{{ notif.title }}</p>
         <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">{{ notif.message }}</p>
         <p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">{{ notif.created_at|timesince }} ago</p>
       </div>
-      {% if not notif.read %}<span class="w-2 h-2 rounded-full bg-primary shrink-0 mt-1"></span>{% endif %}
+      {% if not notif.read %}<span class="w-2 h-2 rounded-full bg-primary shrink-0 mt-1 notif-unread-dot"></span>{% endif %}
     </div>
     {% empty %}
     <div class="text-center py-md">

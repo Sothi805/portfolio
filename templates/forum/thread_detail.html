@@ -34,15 +34,15 @@
     <!-- Thread actions -->
     <div class="flex items-center gap-sm mt-lg pt-md border-t border-outline-variant">
       {% if user.is_authenticated %}
-      <form method="post">
+      <form method="post" id="upvote-thread-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="upvote_thread"/>
-        <button type="submit" class="flex items-center gap-xs font-label-md text-label-md border border-outline-variant px-sm py-xs rounded-full hover:border-primary hover:text-primary transition-colors {% if user_upvoted_thread %}bg-primary-fixed text-primary border-primary{% endif %}">
-          <span class="material-symbols-outlined text-[18px] {% if user_upvoted_thread %}icon-fill{% endif %}">thumb_up</span>
-          {{ thread.upvotes }}
+        <button type="submit" id="thread-upvote-btn" class="flex items-center gap-xs font-label-md text-label-md border border-outline-variant px-sm py-xs rounded-full hover:border-primary hover:text-primary transition-colors {% if user_upvoted_thread %}bg-primary-fixed text-primary border-primary{% endif %}">
+          <span class="material-symbols-outlined text-[18px] {% if user_upvoted_thread %}icon-fill{% endif %}" id="thread-upvote-icon">thumb_up</span>
+          <span id="thread-upvote-count">{{ thread.upvotes }}</span>
         </button>
       </form>
-      <form method="post">
+      <form method="post" id="flag-thread-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="flag"/>
         <select name="reason" class="border border-outline-variant rounded-full px-sm py-xs text-body-sm text-on-surface focus:outline-none hidden" id="flag-reason">
@@ -94,10 +94,10 @@
               <span class="font-label-md text-label-md text-on-surface">{{ reply.user.username }}</span>
               <span class="font-label-sm text-label-sm text-on-surface-variant">{{ reply.created_at|timesince }} ago</span>
               {% if user.is_authenticated %}
-              <form method="post" class="ml-auto" action="{% url 'upvote_reply' reply.id %}">
+              <form method="post" class="ml-auto upvote-reply-form" action="{% url 'upvote_reply' reply.id %}" data-reply-id="{{ reply.id }}">
                 {% csrf_token %}
                 <button type="submit" class="flex items-center gap-xs font-label-sm text-label-sm border border-outline-variant px-xs py-0.5 rounded-full hover:border-primary hover:text-primary transition-colors {% if reply.id in user_upvoted_replies %}bg-primary-fixed text-primary border-primary{% endif %}">
-                  <span class="material-symbols-outlined text-[14px] {% if reply.id in user_upvoted_replies %}icon-fill{% endif %}">thumb_up</span> {{ reply.upvotes }}
+                  <span class="material-symbols-outlined text-[14px] {% if reply.id in user_upvoted_replies %}icon-fill{% endif %}">thumb_up</span> <span class="reply-upvote-count">{{ reply.upvotes }}</span>
                 </button>
               </form>
               {% else %}
@@ -111,7 +111,7 @@
               <span class="material-symbols-outlined text-[14px]">reply</span> Reply
             </button>
             <div id="reply-form-{{ reply.id }}" class="hidden mt-sm">
-              <form method="post" class="flex flex-col gap-xs">
+              <form method="post" class="flex flex-col gap-xs nested-reply-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reply"/>
                 <input type="hidden" name="parent_id" value="{{ reply.id }}"/>
@@ -135,7 +135,7 @@
 
       <!-- Nested child replies -->
       {% if reply.child_replies.all %}
-      <div class="border-t border-outline-variant">
+      <div class="border-t border-outline-variant child-replies-container">
         {% for child in reply.child_replies.all %}
         <div class="flex gap-0 px-md py-sm border-b border-outline-variant last:border-b-0" id="reply-{{ child.id }}">
           <!-- Reddit thread line -->
@@ -154,10 +154,10 @@
                   <span class="font-label-sm text-label-sm text-on-surface font-medium">{{ child.user.username }}</span>
                   <span class="font-label-sm text-label-sm text-on-surface-variant">{{ child.created_at|timesince }} ago</span>
                   {% if user.is_authenticated %}
-                  <form method="post" class="ml-auto" action="{% url 'upvote_reply' child.id %}">
+                  <form method="post" class="ml-auto upvote-reply-form" action="{% url 'upvote_reply' child.id %}" data-reply-id="{{ child.id }}">
                     {% csrf_token %}
                     <button type="submit" class="flex items-center gap-xs font-label-sm text-label-sm border border-outline-variant px-xs py-0.5 rounded-full hover:border-primary hover:text-primary transition-colors {% if child.id in user_upvoted_replies %}bg-primary-fixed text-primary border-primary{% endif %}">
-                      <span class="material-symbols-outlined text-[12px] {% if child.id in user_upvoted_replies %}icon-fill{% endif %}">thumb_up</span> {{ child.upvotes }}
+                      <span class="material-symbols-outlined text-[12px] {% if child.id in user_upvoted_replies %}icon-fill{% endif %}">thumb_up</span> <span class="reply-upvote-count">{{ child.upvotes }}</span>
                     </button>
                   </form>
                   {% else %}
@@ -181,7 +181,7 @@
   {% if user.is_authenticated %}
   <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm" id="reply-form-section">
     <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Post a Reply</h3>
-    <form method="post">
+    <form method="post" id="main-reply-form">
       {% csrf_token %}
       <input type="hidden" name="action" value="reply"/>
       <textarea name="content" rows="5" placeholder="Share your thoughts..." required class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary transition-colors text-body-md mb-md resize-none"></textarea>
