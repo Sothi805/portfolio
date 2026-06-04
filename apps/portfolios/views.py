@@ -255,7 +255,7 @@ class PortfolioEditView(LoginRequiredMixin, View):
                         'title': project.title,
                         'description': project.description,
                         'url': project.url,
-                        'image_url': project.image.url if project.image else None,
+                        'image_url': project.get_image_url(),
                     }})
                 messages.success(request, 'Project added.')
             elif is_ajax:

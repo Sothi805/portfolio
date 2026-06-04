@@ -118,7 +118,7 @@
       <div class="p-sm flex flex-col gap-xs flex-grow">
         <div class="flex items-center gap-xs">
           {% if portfolio.user.avatar %}
-          <img src="{{ portfolio.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ portfolio.user.username }}"/>
+          <img src="{{ portfolio.user.get_avatar_url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ portfolio.user.username }}"/>
           {% else %}
           <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ portfolio.user.username|first|upper }}</div>
           {% endif %}

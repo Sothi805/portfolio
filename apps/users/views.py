@@ -117,7 +117,7 @@ class ProfileView(LoginRequiredMixin, View):
             return JsonResponse({
                 'status': 'ok',
                 'username': user.username,
-                'avatar_url': user.avatar.url if user.avatar else None,
+                'avatar_url': user.get_avatar_url(),
             })
         messages.success(request, 'Profile updated successfully.')
         return redirect('profile')

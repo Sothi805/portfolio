@@ -122,7 +122,7 @@
     {% for project in projects %}
     <div class="flex items-start gap-md p-md hover:bg-surface-container transition-colors">
       {% if project.image %}
-      <img src="{{ project.image.url }}" class="w-20 h-16 object-cover rounded-lg border border-outline-variant shrink-0" alt="{{ project.title }}"/>
+      <img src="{{ project.get_image_url }}" class="w-20 h-16 object-cover rounded-lg border border-outline-variant shrink-0" alt="{{ project.title }}"/>
       {% else %}
       <div class="w-20 h-16 rounded-lg bg-surface-container border border-outline-variant flex items-center justify-center text-on-surface-variant shrink-0">
         <span class="material-symbols-outlined text-[24px]">image</span>

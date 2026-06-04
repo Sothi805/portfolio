@@ -152,7 +152,7 @@ if _cloudinary_url or _cloudinary_cloud:
         'API_SECRET': _cloudinary_api_secret,
     }
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = f'https://res.cloudinary.com/{_cloudinary_cloud}/'
+    # MEDIA_URL is handled by django-cloudinary-storage; no override needed
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

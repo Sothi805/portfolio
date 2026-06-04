@@ -34,7 +34,7 @@
         <!-- Avatar -->
         <div class="shrink-0 creative-avatar">
           {% if portfolio.user.avatar %}
-            <img src="{{ portfolio.user.avatar.url }}" class="w-28 h-28 rounded-[24px] object-cover border-4 border-white/40 shadow-2xl" alt="{{ portfolio.user.username }}"/>
+            <img src="{{ portfolio.user.get_avatar_url }}" class="w-28 h-28 rounded-[24px] object-cover border-4 border-white/40 shadow-2xl" alt="{{ portfolio.user.username }}"/>
           {% else %}
             <div class="w-28 h-28 rounded-[24px] bg-white/20 border-4 border-white/40 backdrop-blur-sm flex items-center justify-center shadow-2xl">
               <span class="text-5xl font-bold text-white">{{ portfolio.user.username|first|upper }}</span>
@@ -118,7 +118,7 @@
         <div class="creative-project-card bg-white shadow-sm group">
           {% if project.image %}
           <div class="h-52 overflow-hidden">
-            <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+            <img src="{{ project.get_image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
           </div>
           {% else %}
           <div class="h-52 flex items-center justify-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">

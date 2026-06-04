@@ -36,7 +36,7 @@
       <!-- Avatar -->
       <div class="shrink-0">
         {% if portfolio.user.avatar %}
-          <img src="{{ portfolio.user.avatar.url }}" class="w-24 h-24 rounded-2xl object-cover border-2 border-[#22d3ee40] shadow-lg" alt="{{ portfolio.user.username }}"/>
+          <img src="{{ portfolio.user.get_avatar_url }}" class="w-24 h-24 rounded-2xl object-cover border-2 border-[#22d3ee40] shadow-lg" alt="{{ portfolio.user.username }}"/>
         {% else %}
           <div class="w-24 h-24 rounded-2xl bg-[#1e293b] border-2 border-[#22d3ee40] flex items-center justify-center shadow-lg" style="font-family:monospace;">
             <span class="text-4xl font-bold text-[#22d3ee]">{{ portfolio.user.username|first|upper }}</span>
@@ -98,7 +98,7 @@
             <div class="dev-project-card overflow-hidden group">
               {% if project.image %}
               <div class="h-40 overflow-hidden">
-                <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"/>
+                <img src="{{ project.get_image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"/>
               </div>
               {% else %}
               <div class="h-40 bg-[#0f172a] flex items-center justify-center border-b border-[#334155]">

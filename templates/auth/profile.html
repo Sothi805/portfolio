@@ -16,7 +16,7 @@
         </div>
         <div class="px-md pb-md -mt-10 relative">
           {% if profile_user.avatar %}
-            <img src="{{ profile_user.avatar.url }}" class="w-20 h-20 rounded-full object-cover border-4 border-surface-container-lowest shadow-md" alt="Avatar"/>
+            <img src="{{ profile_user.get_avatar_url }}" class="w-20 h-20 rounded-full object-cover border-4 border-surface-container-lowest shadow-md" alt="Avatar"/>
           {% else %}
             <div class="w-20 h-20 rounded-full bg-primary border-4 border-surface-container-lowest shadow-md flex items-center justify-center text-3xl font-bold text-white">{{ profile_user.username|first|upper }}</div>
           {% endif %}
@@ -81,7 +81,7 @@
             <div class="avatar-drop-zone shrink-0" id="avatar-drop-zone" title="Click to change avatar">
               <input type="file" name="avatar" accept="image/*" id="avatar-input"/>
               {% if profile_user.avatar %}
-                <img src="{{ profile_user.avatar.url }}" id="avatar-preview" class="w-16 h-16 rounded-full object-cover border-2 border-primary" alt="Avatar"/>
+                <img src="{{ profile_user.get_avatar_url }}" id="avatar-preview" class="w-16 h-16 rounded-full object-cover border-2 border-primary" alt="Avatar"/>
               {% else %}
                 <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-white" id="avatar-default">{{ profile_user.username|first|upper }}</div>
                 <img src="" id="avatar-preview" class="w-16 h-16 rounded-full object-cover border-2 border-primary hidden" alt="Avatar"/>

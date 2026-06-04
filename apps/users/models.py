@@ -31,5 +31,8 @@ class CustomUser(AbstractUser):
 
     def get_avatar_url(self):
         if self.avatar:
-            return self.avatar.url
+            try:
+                return self.avatar.url
+            except Exception:
+                pass
         return '/static/images/default-avatar.svg'

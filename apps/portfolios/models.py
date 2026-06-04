@@ -64,6 +64,14 @@ class Project(models.Model):
     def __str__(self):
         return self.title
 
+    def get_image_url(self):
+        if self.image:
+            try:
+                return self.image.url
+            except Exception:
+                pass
+        return None
+
 
 class Skill(models.Model):
     """Skill listed in a portfolio"""

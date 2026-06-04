@@ -27,7 +27,7 @@
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
         <div class="flex items-end gap-md">
           {% if portfolio.user.avatar %}
-            <img src="{{ portfolio.user.avatar.url }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-surface-container-lowest shadow-md shrink-0" alt="{{ portfolio.user.username }}"/>
+            <img src="{{ portfolio.user.get_avatar_url }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-surface-container-lowest shadow-md shrink-0" alt="{{ portfolio.user.username }}"/>
           {% else %}
             <div class="w-20 h-20 rounded-2xl bg-primary border-4 border-surface-container-lowest shadow-md flex items-center justify-center text-3xl font-bold text-white shrink-0">{{ portfolio.user.username|first|upper }}</div>
           {% endif %}
@@ -68,7 +68,7 @@
       {% for project in portfolio.projects.all %}
       <div class="border border-outline-variant rounded-lg overflow-hidden hover:border-primary transition-colors">
         {% if project.image %}
-        <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-36 object-cover"/>
+        <img src="{{ project.get_image_url }}" alt="{{ project.title }}" class="w-full h-36 object-cover"/>
         {% else %}
         <div class="w-full h-36 bg-surface-container flex items-center justify-center">
           <span class="material-symbols-outlined text-[48px] text-outline">image</span>

@@ -154,7 +154,7 @@ class ForumThreadDetailView(View):
                         'reply': {
                             'id': reply.id,
                             'username': request.user.username,
-                            'avatar': request.user.avatar.url if request.user.avatar else None,
+                            'avatar': request.user.get_avatar_url(),
                             'content': reply.content,
                             'parent_id': parent.id if parent else None,
                             'upvotes': 0,

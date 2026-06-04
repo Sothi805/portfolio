@@ -10,7 +10,7 @@
     <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-md p-lg">
       <div class="flex items-center gap-md">
         {% if user.avatar %}
-          <img src="{{ user.avatar.url }}" class="w-16 h-16 rounded-full object-cover border-2 border-white/50 shadow-md shrink-0" alt="{{ user.username }}"/>
+          <img src="{{ user.get_avatar_url }}" class="w-16 h-16 rounded-full object-cover border-2 border-white/50 shadow-md shrink-0" alt="{{ user.username }}"/>
         {% else %}
           <div class="w-16 h-16 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-2xl font-bold text-white shrink-0">{{ user.username|first|upper }}</div>
         {% endif %}

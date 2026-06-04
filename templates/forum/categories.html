@@ -152,7 +152,7 @@
               {% else %}<span class="font-label-sm text-label-sm text-on-surface-variant">{{ forloop.counter }}</span>{% endif %}
             </span>
             {% if up.user.avatar %}
-            <img src="{{ up.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ up.user.username }}">
+            <img src="{{ up.user.get_avatar_url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ up.user.username }}">
             {% else %}
             <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ up.user.username|first|upper }}</div>
             {% endif %}

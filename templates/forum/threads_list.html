@@ -64,7 +64,7 @@
             <!-- Author row -->
             <div class="flex items-center gap-xs mt-sm flex-wrap">
               {% if thread.user.avatar %}
-              <img src="{{ thread.user.avatar.url }}" class="w-5 h-5 rounded-full object-cover" alt="{{ thread.user.username }}">
+              <img src="{{ thread.user.get_avatar_url }}" class="w-5 h-5 rounded-full object-cover" alt="{{ thread.user.username }}">
               {% else %}
               <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-white text-[9px] font-bold">{{ thread.user.username|first|upper }}</div>
               {% endif %}

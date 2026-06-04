@@ -73,7 +73,7 @@
     <header class="reveal min-section">
       <div class="flex items-center gap-5 mb-6">
         {% if portfolio.user.avatar %}
-          <img src="{{ portfolio.user.avatar.url }}" class="w-16 h-16 rounded-full object-cover shrink-0 border border-[#e5e5e5]" alt="{{ portfolio.user.username }}"/>
+          <img src="{{ portfolio.user.get_avatar_url }}" class="w-16 h-16 rounded-full object-cover shrink-0 border border-[#e5e5e5]" alt="{{ portfolio.user.username }}"/>
         {% else %}
           <div class="w-16 h-16 rounded-full border-2 border-[#171717] flex items-center justify-center text-2xl font-black text-[#171717] bg-white shrink-0 select-none">{{ portfolio.user.username|first|upper }}</div>
         {% endif %}
@@ -140,7 +140,7 @@
         <div class="min-row">
           <div class="flex items-start gap-4">
             {% if project.image %}
-            <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-14 h-14 rounded-lg object-cover border border-[#e5e5e5] shrink-0 mt-0.5"/>
+            <img src="{{ project.get_image_url }}" alt="{{ project.title }}" class="w-14 h-14 rounded-lg object-cover border border-[#e5e5e5] shrink-0 mt-0.5"/>
             {% endif %}
             <div class="flex-grow min-w-0">
               <h3 class="text-base font-bold text-[#171717] leading-snug mb-1">{{ project.title }}</h3>

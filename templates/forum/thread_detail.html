@@ -21,7 +21,7 @@
     <!-- Author info -->
     <div class="flex items-center gap-sm mb-md">
       {% if thread.user.avatar %}
-      <img src="{{ thread.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ thread.user.username }}">
+      <img src="{{ thread.user.get_avatar_url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ thread.user.username }}">
       {% else %}
       <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ thread.user.username|first|upper }}</div>
       {% endif %}
@@ -85,7 +85,7 @@
       <div class="p-md">
         <div class="flex items-start gap-sm">
           {% if reply.user.avatar %}
-          <img src="{{ reply.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0 mt-0.5" alt="{{ reply.user.username }}">
+          <img src="{{ reply.user.get_avatar_url }}" class="w-8 h-8 rounded-full object-cover shrink-0 mt-0.5" alt="{{ reply.user.username }}">
           {% else %}
           <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface font-bold text-body-sm shrink-0 mt-0.5">{{ reply.user.username|first|upper }}</div>
           {% endif %}
@@ -145,7 +145,7 @@
           <div class="flex-grow min-w-0">
             <div class="flex items-start gap-sm">
               {% if child.user.avatar %}
-              <img src="{{ child.user.avatar.url }}" class="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" alt="{{ child.user.username }}">
+              <img src="{{ child.user.get_avatar_url }}" class="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" alt="{{ child.user.username }}">
               {% else %}
               <div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface font-bold text-[10px] shrink-0 mt-0.5">{{ child.user.username|first|upper }}</div>
               {% endif %}
