@@ -137,9 +137,12 @@ class PortfolioCreateView(LoginRequiredMixin, View):
         return render(request, self.template_name, {'templates': templates})
 
     def post(self, request):
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         title = request.POST.get('title', '').strip()
         template_id = request.POST.get('template_id')
         if not title:
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Portfolio title is required.'}, status=400)
             messages.error(request, 'Portfolio title is required.')
             return render(request, self.template_name, {
                 'templates': Template.objects.filter(is_active=True)
@@ -172,6 +175,8 @@ class PortfolioCreateView(LoginRequiredMixin, View):
                 }
             }
         )
+        if is_ajax:
+            return JsonResponse({'status': 'ok', 'redirect': reverse('portfolio_edit', kwargs={'portfolio_slug': portfolio.slug})})
         messages.success(request, 'Portfolio created! Start editing it now.')
         return redirect('portfolio_edit', portfolio_slug=portfolio.slug)
 
@@ -201,13 +206,15 @@ class PortfolioEditView(LoginRequiredMixin, View):
             'skill_form': SkillForm(),
             'education_form': EducationForm(),
             'experience_form': ExperienceForm(),
+            'templates': Template.objects.filter(is_active=True),
         })
 
     def post(self, request, portfolio_slug):
         portfolio = self.get_portfolio(request, portfolio_slug)
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-        # Handle AJAX JSON updates
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Auto-save JSON body requests (from initAutoSave)
+        if is_ajax and 'application/json' in (request.content_type or ''):
             try:
                 data = json.loads(request.body)
                 section = data.get('section')
@@ -219,19 +226,22 @@ class PortfolioEditView(LoginRequiredMixin, View):
             except Exception as e:
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-        # Handle form POST for status/title
         action = request.POST.get('action')
         if action == 'update_status':
             new_status = request.POST.get('status')
             if new_status in ['draft', 'private', 'public']:
                 portfolio.status = new_status
                 portfolio.save(update_fields=['status'])
+                if is_ajax:
+                    return JsonResponse({'status': 'ok', 'new_status': new_status})
                 messages.success(request, f'Portfolio is now {new_status}.')
         elif action == 'update_title':
             new_title = request.POST.get('title', '').strip()
             if new_title:
                 portfolio.title = new_title
                 portfolio.save(update_fields=['title'])
+                if is_ajax:
+                    return JsonResponse({'status': 'ok', 'title': new_title})
                 messages.success(request, 'Title updated.')
         elif action == 'add_project':
             form = ProjectForm(request.POST, request.FILES)
@@ -239,21 +249,43 @@ class PortfolioEditView(LoginRequiredMixin, View):
                 project = form.save(commit=False)
                 project.portfolio = portfolio
                 project.save()
+                if is_ajax:
+                    return JsonResponse({'status': 'ok', 'project': {
+                        'id': project.id,
+                        'title': project.title,
+                        'description': project.description,
+                        'url': project.url,
+                        'image_url': project.image.url if project.image else None,
+                    }})
                 messages.success(request, 'Project added.')
+            elif is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Project title is required.'}, status=400)
         elif action == 'add_skill':
             form = SkillForm(request.POST)
             if form.is_valid():
                 skill = form.save(commit=False)
                 skill.portfolio = portfolio
                 skill.save()
+                if is_ajax:
+                    return JsonResponse({'status': 'ok', 'skill': {
+                        'id': skill.id,
+                        'name': skill.name,
+                        'proficiency': skill.proficiency,
+                    }})
                 messages.success(request, 'Skill added.')
+            elif is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Please enter a skill name.'}, status=400)
         elif action == 'delete_project':
             pid = request.POST.get('project_id')
             Project.objects.filter(id=pid, portfolio=portfolio).delete()
+            if is_ajax:
+                return JsonResponse({'status': 'ok'})
             messages.success(request, 'Project removed.')
         elif action == 'delete_skill':
             sid = request.POST.get('skill_id')
             Skill.objects.filter(id=sid, portfolio=portfolio).delete()
+            if is_ajax:
+                return JsonResponse({'status': 'ok'})
             messages.success(request, 'Skill removed.')
         elif action == 'add_education':
             form = EducationForm(request.POST)
@@ -261,12 +293,25 @@ class PortfolioEditView(LoginRequiredMixin, View):
                 edu = form.save(commit=False)
                 edu.portfolio = portfolio
                 edu.save()
+                if is_ajax:
+                    return JsonResponse({'status': 'ok', 'education': {
+                        'id': edu.id,
+                        'institution': edu.institution,
+                        'degree': edu.degree,
+                        'field_of_study': edu.field_of_study,
+                        'period': edu.period,
+                        'description': edu.description,
+                    }})
                 messages.success(request, 'Education added.')
             else:
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': 'Please fill in at least the institution name.'}, status=400)
                 messages.error(request, 'Please fill in at least the institution name.')
         elif action == 'delete_education':
             eid = request.POST.get('education_id')
             Education.objects.filter(id=eid, portfolio=portfolio).delete()
+            if is_ajax:
+                return JsonResponse({'status': 'ok'})
             messages.success(request, 'Education removed.')
         elif action == 'add_experience':
             form = ExperienceForm(request.POST)
@@ -274,17 +319,31 @@ class PortfolioEditView(LoginRequiredMixin, View):
                 exp = form.save(commit=False)
                 exp.portfolio = portfolio
                 exp.save()
+                if is_ajax:
+                    return JsonResponse({'status': 'ok', 'experience': {
+                        'id': exp.id,
+                        'company': exp.company,
+                        'role': exp.role,
+                        'period': exp.period,
+                        'description': exp.description,
+                    }})
                 messages.success(request, 'Experience added.')
             else:
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': 'Please fill in at least the company and role.'}, status=400)
                 messages.error(request, 'Please fill in at least the company and role.')
         elif action == 'delete_experience':
             xid = request.POST.get('experience_id')
             Experience.objects.filter(id=xid, portfolio=portfolio).delete()
+            if is_ajax:
+                return JsonResponse({'status': 'ok'})
             messages.success(request, 'Experience removed.')
         elif action == 'update_about':
             about = request.POST.get('about', '')
             portfolio.content['about'] = about
             portfolio.save(update_fields=['content'])
+            if is_ajax:
+                return JsonResponse({'status': 'ok'})
             messages.success(request, 'About section updated.')
         elif action == 'update_contact':
             portfolio.content['contact'] = {
@@ -293,7 +352,18 @@ class PortfolioEditView(LoginRequiredMixin, View):
                 'location': request.POST.get('contact_location', ''),
             }
             portfolio.save(update_fields=['content'])
+            if is_ajax:
+                return JsonResponse({'status': 'ok'})
             messages.success(request, 'Contact info updated.')
+        elif action == 'update_template':
+            template_id = request.POST.get('template_id')
+            if template_id:
+                tpl = get_object_or_404(Template, id=template_id)
+                portfolio.template = tpl
+                portfolio.save(update_fields=['template'])
+                if is_ajax:
+                    return JsonResponse({'status': 'ok', 'template_name': tpl.name})
+                messages.success(request, f'Template changed to {tpl.name}.')
 
         return redirect('portfolio_edit', portfolio_slug=portfolio.slug)
 

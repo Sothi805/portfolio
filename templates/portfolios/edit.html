@@ -10,9 +10,9 @@
         <span class="material-symbols-outlined text-primary">edit</span>
       </div>
       <div>
-        <h1 class="font-headline-md text-headline-md text-on-background">Editing: <span class="text-primary">{{ portfolio.title }}</span></h1>
+        <h1 class="font-headline-md text-headline-md text-on-background">Editing: <span class="text-primary" id="portfolio-title-display">{{ portfolio.title }}</span></h1>
         <div class="flex items-center gap-sm mt-xs flex-wrap">
-          <span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full capitalize
+          <span id="portfolio-status-badge" class="font-label-sm text-label-sm px-xs py-0.5 rounded-full capitalize
             {% if portfolio.status == 'public' %}bg-green-100 text-green-700
             {% elif portfolio.status == 'private' %}bg-yellow-100 text-yellow-700
             {% else %}bg-surface-container text-on-surface-variant{% endif %}">
@@ -38,7 +38,7 @@
         <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
           <span class="material-symbols-outlined text-primary text-[20px]">person</span> About
         </h2>
-        <form method="post">
+        <form method="post" id="about-form">
           {% csrf_token %}
           <input type="hidden" name="action" value="update_about"/>
           <textarea name="about" rows="5" placeholder="Tell visitors about yourself, your experience, and what you do..." class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary transition-colors resize-none text-body-md">{{ portfolio.get_about }}</textarea>
@@ -66,7 +66,7 @@
             <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">{{ project.description|truncatewords:10 }}</p>
             {% if project.url %}<a href="{{ project.url }}" target="_blank" class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-xs mt-0.5"><span class="material-symbols-outlined text-[12px]">open_in_new</span>{{ project.url|truncatechars:30 }}</a>{% endif %}
           </div>
-          <form method="post">
+          <form method="post" class="delete-project-form" data-project-id="{{ project.id }}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_project"/>
             <input type="hidden" name="project_id" value="{{ project.id }}"/>
@@ -144,7 +144,7 @@
           <div class="flex items-center gap-xs px-sm py-xs rounded-full border border-outline-variant bg-surface-container group">
             <span class="font-label-md text-label-md text-on-surface">{{ skill.name }}</span>
             <span class="font-label-sm text-label-sm text-on-surface-variant capitalize bg-surface-container-high px-xs py-0.5 rounded-full">{{ skill.proficiency }}</span>
-            <form method="post" class="inline">
+            <form method="post" class="delete-skill-form inline" data-skill-id="{{ skill.id }}">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete_skill"/>
               <input type="hidden" name="skill_id" value="{{ skill.id }}"/>
@@ -159,7 +159,7 @@
           <summary class="font-label-md text-label-md text-primary cursor-pointer flex items-center gap-xs hover:underline select-none p-xs rounded-lg hover:bg-primary/5 transition-colors">
             <span class="material-symbols-outlined text-[18px]">add_circle</span> Add Skill
           </summary>
-          <form method="post" class="mt-sm flex gap-sm items-end border border-outline-variant rounded-xl p-md flex-wrap bg-surface-container/30">
+          <form method="post" id="add-skill-form" class="mt-sm flex gap-sm items-end border border-outline-variant rounded-xl p-md flex-wrap bg-surface-container/30">
             {% csrf_token %}
             <input type="hidden" name="action" value="add_skill"/>
             <div class="flex-grow min-w-[140px]">
@@ -194,7 +194,7 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant">{{ exp.period }}</p>
             {% if exp.description %}<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mt-xs">{{ exp.description }}</p>{% endif %}
           </div>
-          <form method="post">
+          <form method="post" class="delete-experience-form" data-exp-id="{{ exp.id }}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_experience"/>
             <input type="hidden" name="experience_id" value="{{ exp.id }}"/>
@@ -208,7 +208,7 @@
           <summary class="font-label-md text-label-md text-primary cursor-pointer flex items-center gap-xs hover:underline select-none p-xs rounded-lg hover:bg-primary/5 transition-colors">
             <span class="material-symbols-outlined text-[18px]">add_circle</span> Add Experience
           </summary>
-          <form method="post" class="mt-md flex flex-col gap-md border border-outline-variant rounded-xl p-md bg-surface-container/30">
+          <form method="post" id="add-experience-form" class="mt-md flex flex-col gap-md border border-outline-variant rounded-xl p-md bg-surface-container/30">
             {% csrf_token %}
             <input type="hidden" name="action" value="add_experience"/>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
@@ -257,7 +257,7 @@
             <p class="font-label-sm text-label-sm text-on-surface-variant">{{ edu.period }}</p>
             {% if edu.description %}<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mt-xs">{{ edu.description }}</p>{% endif %}
           </div>
-          <form method="post">
+          <form method="post" class="delete-education-form" data-edu-id="{{ edu.id }}">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_education"/>
             <input type="hidden" name="education_id" value="{{ edu.id }}"/>
@@ -271,7 +271,7 @@
           <summary class="font-label-md text-label-md text-primary cursor-pointer flex items-center gap-xs hover:underline select-none p-xs rounded-lg hover:bg-primary/5 transition-colors">
             <span class="material-symbols-outlined text-[18px]">add_circle</span> Add Education
           </summary>
-          <form method="post" class="mt-md flex flex-col gap-md border border-outline-variant rounded-xl p-md bg-surface-container/30">
+          <form method="post" id="add-education-form" class="mt-md flex flex-col gap-md border border-outline-variant rounded-xl p-md bg-surface-container/30">
             {% csrf_token %}
             <input type="hidden" name="action" value="add_education"/>
             <div>
@@ -312,7 +312,7 @@
         <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
           <span class="material-symbols-outlined text-primary text-[20px]">contact_mail</span> Contact Info
         </h2>
-        <form method="post" class="flex flex-col gap-sm">
+        <form method="post" id="contact-form" class="flex flex-col gap-sm">
           {% csrf_token %}
           <input type="hidden" name="action" value="update_contact"/>
           {% with contact=portfolio.get_contact %}
@@ -339,7 +339,7 @@
       <!-- Publish Controls -->
       <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
         <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Publish</h3>
-        <form method="post" class="flex flex-col gap-sm">
+        <form method="post" id="status-form" class="flex flex-col gap-sm">
           {% csrf_token %}
           <input type="hidden" name="action" value="update_status"/>
           <div class="flex flex-col gap-xs">
@@ -362,11 +362,41 @@
       <!-- Title -->
       <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
         <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Portfolio Title</h3>
-        <form method="post" class="flex flex-col gap-sm">
+        <form method="post" id="title-form" class="flex flex-col gap-sm">
           {% csrf_token %}
           <input type="hidden" name="action" value="update_title"/>
           <input type="text" name="title" value="{{ portfolio.title }}" class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary"/>
           <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary py-xs rounded-lg transition-colors">Update Title</button>
+        </form>
+      </div>
+
+      <!-- Template -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Template</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mb-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-[14px]">dashboard_customize</span>
+          Current: <span id="current-template-name" class="font-label-sm text-label-sm text-primary ml-xs">{{ portfolio.template.name|default:"None" }}</span>
+        </p>
+        <form method="post" id="template-form" class="flex flex-col gap-sm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_template"/>
+          <div class="flex flex-col gap-xs">
+            {% for t in templates %}
+            <label class="cursor-pointer">
+              <input type="radio" name="template_id" value="{{ t.id }}" class="sr-only peer" {% if portfolio.template.id == t.id %}checked{% endif %}/>
+              <div class="border border-outline-variant peer-checked:border-primary peer-checked:bg-primary-fixed rounded-xl px-sm py-xs flex items-center gap-sm hover:border-primary transition-colors">
+                <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-white text-[16px]">dashboard_customize</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="font-label-md text-label-md text-on-surface">{{ t.name }}</p>
+                  <p class="font-label-sm text-label-sm text-on-surface-variant line-clamp-1">{{ t.description }}</p>
+                </div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          <button type="submit" class="w-full font-label-md text-label-md bg-primary text-on-primary py-xs rounded-lg hover:bg-on-primary-fixed-variant transition-colors mt-xs">Apply Template</button>
         </form>
       </div>
 

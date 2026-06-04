@@ -201,10 +201,13 @@ class ForumCreateThreadView(LoginRequiredMixin, View):
 
     def post(self, request, category_slug):
         category = get_object_or_404(ForumCategory, slug=category_slug, is_active=True)
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         title = request.POST.get('title', '').strip()
         content = request.POST.get('content', '').strip()
 
         if not title or not content:
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Title and content are required.'}, status=400)
             messages.error(request, 'Title and content are required.')
             return render(request, self.template_name, {'category': category})
 
@@ -237,6 +240,9 @@ class ForumCreateThreadView(LoginRequiredMixin, View):
         except Exception:
             pass
 
+        redirect_url = reverse('forum_thread_detail', kwargs={'category_slug': category.slug, 'thread_slug': thread.slug})
+        if is_ajax:
+            return JsonResponse({'status': 'ok', 'redirect': redirect_url})
         messages.success(request, 'Thread created!')
         return redirect('forum_thread_detail', category_slug=category.slug, thread_slug=thread.slug)
 

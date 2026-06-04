@@ -251,5 +251,453 @@ $(function () {
       .fail(function () { showToast('Could not mark notifications as read.', 'error'); });
   });
 
+  /* =============================================
+     Auth Forms
+     ============================================= */
+
+  /* ---- Login ---- */
+  $('#login-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $form.find('.form-error, .field-error').remove();
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') window.location.href = data.redirect;
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        if (data.message) {
+          $form.prepend(`<div class="form-error bg-error-container text-on-error-container rounded-lg p-sm font-body-sm text-body-sm flex items-center gap-xs mb-sm"><span class="material-symbols-outlined text-[16px]">error</span>&nbsp;${escapeHtml(data.message)}</div>`);
+        } else if (data.errors) {
+          Object.entries(data.errors).forEach(([field, msg]) => {
+            $form.find(`[name="${field}"]`).after(`<p class="field-error font-label-sm text-label-sm text-error mt-xs flex items-center gap-xs"><span class="material-symbols-outlined text-[14px]">error</span>&nbsp;${escapeHtml(msg)}</p>`);
+          });
+        }
+        $btn.prop('disabled', false);
+      });
+  });
+
+  /* ---- Register ---- */
+  $('#register-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $form.find('.form-error, .field-error').remove();
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          if (data.message) showToast(data.message);
+          window.location.href = data.redirect;
+        }
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        if (data.errors) {
+          Object.entries(data.errors).forEach(([field, msg]) => {
+            $form.find(`[name="${field}"]`).after(`<p class="field-error font-label-sm text-label-sm text-error mt-xs flex items-center gap-xs"><span class="material-symbols-outlined text-[14px]">error</span>&nbsp;${escapeHtml(msg)}</p>`);
+          });
+        } else {
+          showToast(data.message || 'Registration failed.', 'error');
+        }
+        $btn.prop('disabled', false);
+      });
+  });
+
+  /* ---- Profile Update ---- */
+  $('#profile-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.ajax({
+      url: window.location.href,
+      type: 'POST',
+      data: new FormData(this),
+      processData: false,
+      contentType: false,
+    })
+      .done(function (data) {
+        if (data.status === 'ok') {
+          showToast('Profile updated successfully!');
+          if (data.avatar_url) {
+            $('#avatar-preview').attr('src', data.avatar_url).removeClass('hidden');
+            $('#avatar-default').addClass('hidden');
+          }
+        }
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        showToast(data.message || 'Failed to update profile.', 'error');
+      })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* =============================================
+     Portfolio Create
+     ============================================= */
+
+  $('#create-portfolio-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') window.location.href = data.redirect;
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        showToast(data.message || 'Could not create portfolio.', 'error');
+        $btn.prop('disabled', false);
+      });
+  });
+
+  /* =============================================
+     Portfolio Edit — About / Contact / Status / Title
+     ============================================= */
+
+  /* ---- About ---- */
+  $('#about-form').on('submit', function (e) {
+    e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $(this).serialize())
+      .done(function (data) { if (data.status === 'ok') showToast('About section saved!'); })
+      .fail(function () { showToast('Could not save about section.', 'error'); })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* ---- Contact ---- */
+  $('#contact-form').on('submit', function (e) {
+    e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $(this).serialize())
+      .done(function (data) { if (data.status === 'ok') showToast('Contact info saved!'); })
+      .fail(function () { showToast('Could not save contact info.', 'error'); })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* ---- Status ---- */
+  $('#status-form').on('submit', function (e) {
+    e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $(this).serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          showToast('Portfolio status updated!');
+          const $badge = $('#portfolio-status-badge');
+          $badge.text(data.new_status).removeClass('bg-green-100 text-green-700 bg-yellow-100 text-yellow-700 bg-surface-container text-on-surface-variant');
+          if (data.new_status === 'public') $badge.addClass('bg-green-100 text-green-700');
+          else if (data.new_status === 'private') $badge.addClass('bg-yellow-100 text-yellow-700');
+          else $badge.addClass('bg-surface-container text-on-surface-variant');
+        }
+      })
+      .fail(function () { showToast('Could not update status.', 'error'); })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* ---- Title ---- */
+  $('#title-form').on('submit', function (e) {
+    e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $(this).serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          showToast('Title updated!');
+          $('#portfolio-title-display').text(data.title);
+          document.title = 'Edit ' + data.title + ' \u2013 ProPortfolio';
+        }
+      })
+      .fail(function () { showToast('Could not update title.', 'error'); })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* ---- Template ---- */
+  $('#template-form').on('submit', function (e) {
+    e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $(this).serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          showToast('Template changed to ' + data.template_name + '!');
+          $('#current-template-name').text(data.template_name);
+        }
+      })
+      .fail(function () { showToast('Could not change template.', 'error'); })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* =============================================
+     Portfolio Edit — Projects
+     ============================================= */
+
+  /* ---- Delete project (delegated) ---- */
+  $(document).on('submit', '.delete-project-form', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          $form.parent().remove();
+          showToast('Project removed.');
+        }
+      })
+      .fail(function () { showToast('Could not remove project.', 'error'); });
+  });
+
+  /* ---- Add project ---- */
+  $('#add-project-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.ajax({
+      url: window.location.href,
+      type: 'POST',
+      data: new FormData(this),
+      processData: false,
+      contentType: false,
+    })
+      .done(function (data) {
+        if (data.status === 'ok') {
+          const p = data.project;
+          const csrf = escapeHtml(getCsrfToken());
+          const img = p.image_url
+            ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.title)}" class="w-14 h-14 rounded-lg object-cover shrink-0"/>`
+            : `<div class="w-14 h-14 rounded-lg bg-surface-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-outline text-[22px]">image</span></div>`;
+          const urlLink = p.url
+            ? `<a href="${escapeHtml(p.url)}" target="_blank" class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-xs mt-0.5"><span class="material-symbols-outlined text-[12px]">open_in_new</span>${escapeHtml(p.url.length > 30 ? p.url.substring(0, 30) + '\u2026' : p.url)}</a>`
+            : '';
+          const html = `
+            <div class="flex items-center justify-between p-sm border border-outline-variant rounded-xl mb-sm gap-sm hover:border-primary/40 transition-colors">
+              ${img}
+              <div class="flex-grow min-w-0">
+                <p class="font-label-md text-label-md text-on-surface">${escapeHtml(p.title)}</p>
+                <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">${escapeHtml(p.description || '')}</p>
+                ${urlLink}
+              </div>
+              <form method="post" class="delete-project-form" data-project-id="${p.id}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
+                <input type="hidden" name="action" value="delete_project"/>
+                <input type="hidden" name="project_id" value="${p.id}"/>
+                <button type="submit" class="text-error hover:bg-error-container p-xs rounded-lg transition-colors shrink-0" title="Delete project"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+              </form>
+            </div>`;
+          $form.closest('details').before(html);
+          $form.closest('.shadow-sm').find('p.border-dashed').remove();
+          $form[0].reset();
+          if (typeof clearProjectImage === 'function') clearProjectImage();
+          showToast('Project added!');
+        }
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        showToast(data.message || 'Could not add project.', 'error');
+      })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* =============================================
+     Portfolio Edit — Skills
+     ============================================= */
+
+  /* ---- Delete skill (delegated) ---- */
+  $(document).on('submit', '.delete-skill-form', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') $form.parent().remove();
+      })
+      .fail(function () { showToast('Could not remove skill.', 'error'); });
+  });
+
+  /* ---- Add skill ---- */
+  $('#add-skill-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          const s = data.skill;
+          const csrf = escapeHtml(getCsrfToken());
+          const html = `
+            <div class="flex items-center gap-xs px-sm py-xs rounded-full border border-outline-variant bg-surface-container group">
+              <span class="font-label-md text-label-md text-on-surface">${escapeHtml(s.name)}</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant capitalize bg-surface-container-high px-xs py-0.5 rounded-full">${escapeHtml(s.proficiency)}</span>
+              <form method="post" class="delete-skill-form inline" data-skill-id="${s.id}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
+                <input type="hidden" name="action" value="delete_skill"/>
+                <input type="hidden" name="skill_id" value="${s.id}"/>
+                <button type="submit" class="text-error ml-xs opacity-0 group-hover:opacity-100 transition-opacity" title="Remove skill"><span class="material-symbols-outlined text-[14px]">close</span></button>
+              </form>
+            </div>`;
+          $form.closest('details').before(html);
+          $form.closest('.shadow-sm').find('p:contains("No skills")').remove();
+          $form[0].reset();
+          showToast('Skill added!');
+        }
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        showToast(data.message || 'Could not add skill.', 'error');
+      })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* =============================================
+     Portfolio Edit — Experience
+     ============================================= */
+
+  /* ---- Delete experience (delegated) ---- */
+  $(document).on('submit', '.delete-experience-form', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          $form.parent().remove();
+          showToast('Experience removed.');
+        }
+      })
+      .fail(function () { showToast('Could not remove experience.', 'error'); });
+  });
+
+  /* ---- Add experience ---- */
+  $('#add-experience-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          const x = data.experience;
+          const csrf = escapeHtml(getCsrfToken());
+          const desc = x.description ? `<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mt-xs">${escapeHtml(x.description)}</p>` : '';
+          const html = `
+            <div class="flex items-start justify-between p-sm border border-outline-variant rounded-xl mb-sm gap-sm hover:border-primary/40 transition-colors">
+              <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-primary text-[18px]">business</span>
+              </div>
+              <div class="flex-grow min-w-0">
+                <p class="font-label-md text-label-md text-on-surface">${escapeHtml(x.role)}</p>
+                <p class="font-body-sm text-body-sm text-primary">${escapeHtml(x.company)}</p>
+                <p class="font-label-sm text-label-sm text-on-surface-variant">${escapeHtml(x.period)}</p>
+                ${desc}
+              </div>
+              <form method="post" class="delete-experience-form" data-exp-id="${x.id}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
+                <input type="hidden" name="action" value="delete_experience"/>
+                <input type="hidden" name="experience_id" value="${x.id}"/>
+                <button type="submit" class="text-error hover:bg-error-container p-xs rounded-lg transition-colors" title="Delete"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+              </form>
+            </div>`;
+          $form.closest('details').before(html);
+          $form.closest('.shadow-sm').find('p.border-dashed').remove();
+          $form[0].reset();
+          showToast('Experience added!');
+        }
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        showToast(data.message || 'Could not add experience.', 'error');
+      })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* =============================================
+     Portfolio Edit — Education
+     ============================================= */
+
+  /* ---- Delete education (delegated) ---- */
+  $(document).on('submit', '.delete-education-form', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          $form.parent().remove();
+          showToast('Education removed.');
+        }
+      })
+      .fail(function () { showToast('Could not remove education.', 'error'); });
+  });
+
+  /* ---- Add education ---- */
+  $('#add-education-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') {
+          const edu = data.education;
+          const csrf = escapeHtml(getCsrfToken());
+          const degree = edu.degree
+            ? `<p class="font-body-sm text-body-sm text-primary">${escapeHtml(edu.degree)}${edu.field_of_study ? ' \u2013 ' + escapeHtml(edu.field_of_study) : ''}</p>`
+            : '';
+          const desc = edu.description ? `<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mt-xs">${escapeHtml(edu.description)}</p>` : '';
+          const html = `
+            <div class="flex items-start justify-between p-sm border border-outline-variant rounded-xl mb-sm gap-sm hover:border-primary/40 transition-colors">
+              <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-primary text-[18px]">school</span>
+              </div>
+              <div class="flex-grow min-w-0">
+                <p class="font-label-md text-label-md text-on-surface">${escapeHtml(edu.institution)}</p>
+                ${degree}
+                <p class="font-label-sm text-label-sm text-on-surface-variant">${escapeHtml(edu.period)}</p>
+                ${desc}
+              </div>
+              <form method="post" class="delete-education-form" data-edu-id="${edu.id}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
+                <input type="hidden" name="action" value="delete_education"/>
+                <input type="hidden" name="education_id" value="${edu.id}"/>
+                <button type="submit" class="text-error hover:bg-error-container p-xs rounded-lg transition-colors" title="Delete"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+              </form>
+            </div>`;
+          $form.closest('details').before(html);
+          $form.closest('.shadow-sm').find('p.border-dashed').remove();
+          $form[0].reset();
+          showToast('Education added!');
+        }
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        showToast(data.message || 'Could not add education.', 'error');
+      })
+      .always(function () { $btn.prop('disabled', false); });
+  });
+
+  /* =============================================
+     Forum — Create Thread
+     ============================================= */
+
+  $('#create-thread-form').on('submit', function (e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $btn = $form.find('button[type="submit"]');
+    $btn.prop('disabled', true);
+    $.post(window.location.href, $form.serialize())
+      .done(function (data) {
+        if (data.status === 'ok') window.location.href = data.redirect;
+      })
+      .fail(function (xhr) {
+        const data = xhr.responseJSON || {};
+        showToast(data.message || 'Could not create thread.', 'error');
+        $btn.prop('disabled', false);
+      });
+  });
+
 });
 
