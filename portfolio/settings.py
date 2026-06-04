@@ -1,9 +1,13 @@
 import os
 import cloudinary
+import environ
 from pathlib import Path
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file into os.environ for local development
+environ.Env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-portfolio-platform-change-in-production-xyz123')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
@@ -125,23 +129,30 @@ _cloudinary_cloud = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
 
 if _cloudinary_url or _cloudinary_cloud:
     if _cloudinary_url:
-        # SDK auto-parses CLOUDINARY_URL from the environment
-        cloudinary.config(secure=True)
-        _cloudinary_cloud = cloudinary.config().cloud_name
+        # Parse CLOUDINARY_URL explicitly — SDK auto-read happens at import time,
+        # before .env is loaded, so we must configure it manually here.
+        from urllib.parse import urlparse as _urlparse
+        _parsed = _urlparse(_cloudinary_url)
+        _cloudinary_cloud = _parsed.hostname
+        _cloudinary_api_key = _parsed.username
+        _cloudinary_api_secret = _parsed.password
     else:
-        cloudinary.config(
-            cloud_name=_cloudinary_cloud,
-            api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
-            api_secret=os.environ.get('CLOUDINARY_SECRET', ''),
-            secure=True,
-        )
+        _cloudinary_api_key = os.environ.get('CLOUDINARY_API_KEY', '')
+        _cloudinary_api_secret = os.environ.get('CLOUDINARY_SECRET', '')
+
+    cloudinary.config(
+        cloud_name=_cloudinary_cloud,
+        api_key=_cloudinary_api_key,
+        api_secret=_cloudinary_api_secret,
+        secure=True,
+    )
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': cloudinary.config().cloud_name,
-        'API_KEY': cloudinary.config().api_key,
-        'API_SECRET': cloudinary.config().api_secret,
+        'CLOUD_NAME': _cloudinary_cloud,
+        'API_KEY': _cloudinary_api_key,
+        'API_SECRET': _cloudinary_api_secret,
     }
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = f'https://res.cloudinary.com/{cloudinary.config().cloud_name}/'
+    MEDIA_URL = f'https://res.cloudinary.com/{_cloudinary_cloud}/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
