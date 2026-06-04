@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}{{ thread.title }} – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-3xl mx-auto px-margin-mobile py-xl">
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-xs text-on-surface-variant font-body-sm text-body-sm mb-lg">
+    <a href="{% url 'forum_categories' %}" class="hover:text-primary">Forum</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <a href="{% url 'forum_thread_list' thread.category.slug %}" class="hover:text-primary">{{ thread.category.name }}</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <span class="text-on-surface truncate max-w-xs">{{ thread.title }}</span>
+  </div>
+
+  <!-- Thread Card -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm mb-lg">
+    <div class="flex items-start justify-between gap-md mb-md">
+      <h1 class="font-headline-md text-headline-md text-on-background">{{ thread.title }}</h1>
+      {% if thread.is_pinned %}<span class="shrink-0 flex items-center gap-xs font-label-sm text-label-sm text-primary"><span class="material-symbols-outlined text-[16px] icon-fill">push_pin</span>Pinned</span>{% endif %}
+    </div>
+    <!-- Author info -->
+    <div class="flex items-center gap-sm mb-md">
+      {% if thread.user.avatar %}
+      <img src="{{ thread.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ thread.user.username }}">
+      {% else %}
+      <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ thread.user.username|first|upper }}</div>
+      {% endif %}
+      <div>
+        <span class="font-label-md text-label-md text-on-surface">{{ thread.user.username }}</span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant ml-sm">{{ thread.created_at|date:"M d, Y" }}</span>
+      </div>
+    </div>
+    <div class="font-body-md text-body-md text-on-surface whitespace-pre-wrap leading-relaxed">{{ thread.content }}</div>
+    <!-- Thread actions -->
+    <div class="flex items-center gap-sm mt-lg pt-md border-t border-outline-variant">
+      {% if user.is_authenticated %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upvote_thread"/>
+        <button type="submit" class="flex items-center gap-xs font-label-md text-label-md border border-outline-variant px-sm py-xs rounded-full hover:border-primary hover:text-primary transition-colors {% if user_upvoted_thread %}bg-primary-fixed text-primary border-primary{% endif %}">
+          <span class="material-symbols-outlined text-[18px] {% if user_upvoted_thread %}icon-fill{% endif %}">thumb_up</span>
+          {{ thread.upvotes }}
+        </button>
+      </form>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="flag"/>
+        <select name="reason" class="border border-outline-variant rounded-full px-sm py-xs text-body-sm text-on-surface focus:outline-none hidden" id="flag-reason">
+          <option value="spam">Spam</option>
+          <option value="harassment">Harassment</option>
+          <option value="inappropriate">Inappropriate</option>
+          <option value="other">Other</option>
+        </select>
+        <button type="submit" class="flex items-center gap-xs font-label-sm text-label-sm text-on-surface-variant hover:text-error transition-colors">
+          <span class="material-symbols-outlined text-[16px]">flag</span> Report
+        </button>
+      </form>
+      {% else %}
+      <span class="font-label-md text-label-md text-on-surface-variant flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[18px]">thumb_up</span> {{ thread.upvotes }}
+      </span>
+      {% endif %}
+      <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs ml-auto">
+        <span class="material-symbols-outlined text-[16px]">visibility</span> {{ thread.views_count }}
+        <span class="ml-sm">{{ replies|length }} replies</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Replies -->
+  {% if replies %}
+  <div class="flex flex-col gap-sm mb-xl" id="replies-list">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-xs">{{ replies|length }} Repl{{ replies|length|pluralize:"y,ies" }}</h2>
+
+    {% for reply in replies %}
+    <!-- Top-level reply -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm {% if reply.is_marked_helpful %}border-primary{% endif %}" id="reply-{{ reply.id }}">
+      {% if reply.is_marked_helpful %}
+      <div class="px-md pt-sm">
+        <span class="inline-flex items-center gap-xs font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded">
+          <span class="material-symbols-outlined text-[14px] icon-fill">check_circle</span> Marked Helpful
+        </span>
+      </div>
+      {% endif %}
+      <div class="p-md">
+        <div class="flex items-start gap-sm">
+          {% if reply.user.avatar %}
+          <img src="{{ reply.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0 mt-0.5" alt="{{ reply.user.username }}">
+          {% else %}
+          <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface font-bold text-body-sm shrink-0 mt-0.5">{{ reply.user.username|first|upper }}</div>
+          {% endif %}
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center gap-sm flex-wrap mb-xs">
+              <span class="font-label-md text-label-md text-on-surface">{{ reply.user.username }}</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">{{ reply.created_at|timesince }} ago</span>
+              {% if user.is_authenticated %}
+              <form method="post" class="ml-auto" action="{% url 'upvote_reply' reply.id %}">
+                {% csrf_token %}
+                <button type="submit" class="flex items-center gap-xs font-label-sm text-label-sm border border-outline-variant px-xs py-0.5 rounded-full hover:border-primary hover:text-primary transition-colors {% if reply.id in user_upvoted_replies %}bg-primary-fixed text-primary border-primary{% endif %}">
+                  <span class="material-symbols-outlined text-[14px] {% if reply.id in user_upvoted_replies %}icon-fill{% endif %}">thumb_up</span> {{ reply.upvotes }}
+                </button>
+              </form>
+              {% else %}
+              <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs ml-auto"><span class="material-symbols-outlined text-[14px]">thumb_up</span> {{ reply.upvotes }}</span>
+              {% endif %}
+            </div>
+            <p class="font-body-md text-body-md text-on-surface whitespace-pre-wrap">{{ reply.content }}</p>
+            {% if user.is_authenticated %}
+            <button type="button" onclick="toggleReplyForm('reply-form-{{ reply.id }}')"
+              class="mt-sm flex items-center gap-xs font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-[14px]">reply</span> Reply
+            </button>
+            <div id="reply-form-{{ reply.id }}" class="hidden mt-sm">
+              <form method="post" class="flex flex-col gap-xs">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reply"/>
+                <input type="hidden" name="parent_id" value="{{ reply.id }}"/>
+                <textarea name="content" rows="3" placeholder="Reply to {{ reply.user.username }}…" required
+                  class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary transition-colors text-body-sm resize-none"></textarea>
+                <div class="flex gap-xs">
+                  <button type="submit" class="font-label-sm text-label-sm bg-primary text-on-primary px-md py-xs rounded-lg hover:bg-on-primary-fixed-variant transition-colors flex items-center gap-xs">
+                    <span class="material-symbols-outlined text-[14px]">send</span> Post
+                  </button>
+                  <button type="button" onclick="toggleReplyForm('reply-form-{{ reply.id }}')"
+                    class="font-label-sm text-label-sm border border-outline-variant px-md py-xs rounded-lg hover:bg-surface-container-low transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Nested child replies -->
+      {% if reply.child_replies.all %}
+      <div class="border-t border-outline-variant">
+        {% for child in reply.child_replies.all %}
+        <div class="flex gap-0 px-md py-sm border-b border-outline-variant last:border-b-0" id="reply-{{ child.id }}">
+          <!-- Reddit thread line -->
+          <div class="flex flex-col items-center shrink-0 mr-sm" style="width:18px;">
+            <div class="w-0.5 bg-outline-variant rounded-full flex-grow" style="min-height:24px;"></div>
+          </div>
+          <div class="flex-grow min-w-0">
+            <div class="flex items-start gap-sm">
+              {% if child.user.avatar %}
+              <img src="{{ child.user.avatar.url }}" class="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" alt="{{ child.user.username }}">
+              {% else %}
+              <div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface font-bold text-[10px] shrink-0 mt-0.5">{{ child.user.username|first|upper }}</div>
+              {% endif %}
+              <div class="flex-grow min-w-0">
+                <div class="flex items-center gap-sm flex-wrap mb-xs">
+                  <span class="font-label-sm text-label-sm text-on-surface font-medium">{{ child.user.username }}</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant">{{ child.created_at|timesince }} ago</span>
+                  {% if user.is_authenticated %}
+                  <form method="post" class="ml-auto" action="{% url 'upvote_reply' child.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="flex items-center gap-xs font-label-sm text-label-sm border border-outline-variant px-xs py-0.5 rounded-full hover:border-primary hover:text-primary transition-colors {% if child.id in user_upvoted_replies %}bg-primary-fixed text-primary border-primary{% endif %}">
+                      <span class="material-symbols-outlined text-[12px] {% if child.id in user_upvoted_replies %}icon-fill{% endif %}">thumb_up</span> {{ child.upvotes }}
+                    </button>
+                  </form>
+                  {% else %}
+                  <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs ml-auto"><span class="material-symbols-outlined text-[12px]">thumb_up</span> {{ child.upvotes }}</span>
+                  {% endif %}
+                </div>
+                <p class="font-body-sm text-body-sm text-on-surface whitespace-pre-wrap">{{ child.content }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Reply Form -->
+  {% if user.is_authenticated %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm" id="reply-form-section">
+    <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Post a Reply</h3>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reply"/>
+      <textarea name="content" rows="5" placeholder="Share your thoughts..." required class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary transition-colors text-body-md mb-md resize-none"></textarea>
+      <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-lg hover:bg-on-primary-fixed-variant transition-colors flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[18px]">send</span> Post Reply
+      </button>
+    </form>
+  </div>
+  {% else %}
+  <div class="bg-surface-container border border-outline-variant rounded-xl p-lg text-center">
+    <p class="font-body-md text-body-md text-on-surface-variant mb-md">Sign in to join the discussion</p>
+    <a href="{% url 'login' %}?next={{ request.path }}" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-lg hover:bg-on-primary-fixed-variant transition-colors">Sign In</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function toggleReplyForm(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.toggle('hidden');
+      if (!el.classList.contains('hidden')) {
+        const ta = el.querySelector('textarea');
+        if (ta) ta.focus();
+      }
+    }
+  }
+</script>
+
+{% if user.is_authenticated %}
+<script>
+  const threadId = {{ thread.id }};
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+
+  function createRepliesContainer() {
+    let container = document.querySelector('#replies-list');
+    if (container) return container;
+    container = document.createElement('div');
+    container.id = 'replies-list';
+    container.className = 'flex flex-col gap-sm mb-xl';
+    const replyForm = document.querySelector('#reply-form-section');
+    if (replyForm) replyForm.parentNode.insertBefore(container, replyForm);
+    return container;
+  }
+
+  function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(text));
+    return d.innerHTML;
+  }
+
+  try {
+    const forumSocket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/forum/thread/${threadId}/`);
+    forumSocket.onmessage = function(e) {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.type === 'reply_posted' && !data.parent_id) {
+          const repliesContainer = document.getElementById('replies-list') || createRepliesContainer();
+          const div = document.createElement('div');
+          div.className = 'bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm';
+          div.innerHTML = `<div class="flex items-start gap-sm"><div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-body-sm text-on-surface shrink-0">${escapeHtml(data.user[0].toUpperCase())}</div><div class="flex-grow min-w-0"><div class="flex items-center gap-sm mb-xs"><span class="font-label-md text-label-md text-on-surface">${escapeHtml(data.user)}</span><span class="font-label-sm text-label-sm text-on-surface-variant ml-sm">just now</span><span class="ml-auto font-label-sm text-label-sm bg-primary-fixed text-primary px-xs py-0.5 rounded">New</span></div><p class="font-body-md text-body-md text-on-surface whitespace-pre-wrap">${escapeHtml(data.content)}</p></div></div>`;
+          repliesContainer.appendChild(div);
+          div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      } catch(err) { console.warn('Forum WS message error:', err); }
+    };
+    forumSocket.onerror = function() {};
+  } catch(err) {}
+</script>
+{% endif %}
+{% endblock %}

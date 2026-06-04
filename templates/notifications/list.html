@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Notifications – ProPortfolio{% endblock %}
+{% block content %}
+<div class="w-full max-w-2xl mx-auto px-margin-mobile py-xl">
+  <div class="flex items-center justify-between mb-xl">
+    <div>
+      <h1 class="font-headline-md text-headline-md text-on-background">Notifications</h1>
+      <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Your latest activity and updates</p>
+    </div>
+    {% if notifications %}
+    <form method="post" action="{% url 'notifications_mark_all_read' %}">
+      {% csrf_token %}
+      <button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[16px]">done_all</span> Mark all read
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="flex flex-col gap-sm">
+    {% for notif in notifications %}
+    <div class="flex items-start gap-sm p-md bg-surface-container-lowest border rounded-xl shadow-sm transition-colors
+      {% if not notif.read %}border-primary/40 bg-primary-fixed/20{% else %}border-outline-variant{% endif %}">
+      <div class="w-10 h-10 rounded-full {% if not notif.read %}bg-primary-container{% else %}bg-surface-container-high{% endif %} flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined {% if not notif.read %}text-primary{% else %}text-on-surface-variant{% endif %} text-[20px]">{{ notif.get_icon }}</span>
+      </div>
+      <div class="flex-grow min-w-0">
+        <div class="flex items-start justify-between gap-sm">
+          <p class="font-label-md text-label-md text-on-surface">{{ notif.title }}</p>
+          {% if not notif.read %}<span class="w-2 h-2 rounded-full bg-primary shrink-0 mt-1 pulse-dot"></span>{% endif %}
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">{{ notif.message }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant mt-sm flex items-center gap-xs">
+          <span class="material-symbols-outlined text-[14px]">schedule</span> {{ notif.created_at|timesince }} ago
+        </p>
+      </div>
+    </div>
+    {% empty %}
+    <div class="flex flex-col items-center py-xxl text-center border border-dashed border-outline-variant rounded-xl">
+      <span class="material-symbols-outlined text-[64px] text-outline mb-md">notifications_none</span>
+      <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">All caught up!</h3>
+      <p class="font-body-sm text-body-sm text-on-surface-variant">No notifications yet. Stay active to get updates.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

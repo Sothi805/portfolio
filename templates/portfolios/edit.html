@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ portfolio.title }} – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto px-margin-mobile py-lg">
+  <!-- Header bar -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm p-md mb-lg flex items-center justify-between gap-md">
+    <div class="flex items-center gap-md">
+      <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-primary">edit</span>
+      </div>
+      <div>
+        <h1 class="font-headline-md text-headline-md text-on-background">Editing: <span class="text-primary">{{ portfolio.title }}</span></h1>
+        <div class="flex items-center gap-sm mt-xs flex-wrap">
+          <span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full capitalize
+            {% if portfolio.status == 'public' %}bg-green-100 text-green-700
+            {% elif portfolio.status == 'private' %}bg-yellow-100 text-yellow-700
+            {% else %}bg-surface-container text-on-surface-variant{% endif %}">
+            {{ portfolio.status }}
+          </span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[14px]">visibility</span> {{ portfolio.views_count }} views
+          </span>
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'portfolio_detail' portfolio.slug %}" class="font-label-md text-label-md border border-outline-variant text-on-surface px-sm py-xs rounded-lg hover:bg-surface-container transition-colors flex items-center gap-xs shrink-0">
+      <span class="material-symbols-outlined text-[18px]">open_in_new</span> Preview
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+    <!-- Main content (2/3) -->
+    <div class="md:col-span-2 flex flex-col gap-md">
+
+      <!-- About Section -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-primary text-[20px]">person</span> About
+        </h2>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_about"/>
+          <textarea name="about" rows="5" placeholder="Tell visitors about yourself, your experience, and what you do..." class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary transition-colors resize-none text-body-md">{{ portfolio.get_about }}</textarea>
+          <button type="submit" class="mt-sm font-label-md text-label-md bg-primary text-on-primary px-md py-xs rounded-lg hover:bg-on-primary-fixed-variant transition-colors">Save About</button>
+        </form>
+      </div>
+
+      <!-- Projects Section -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-primary text-[20px]">folder_open</span> Projects
+          <span class="ml-auto font-label-sm text-label-sm text-on-surface-variant font-normal">{{ projects|length }} project{{ projects|length|pluralize }}</span>
+        </h2>
+        {% for project in projects %}
+        <div class="flex items-center justify-between p-sm border border-outline-variant rounded-xl mb-sm gap-sm hover:border-primary/40 transition-colors">
+          {% if project.image %}
+          <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-14 h-14 rounded-lg object-cover shrink-0"/>
+          {% else %}
+          <div class="w-14 h-14 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-outline text-[22px]">image</span>
+          </div>
+          {% endif %}
+          <div class="flex-grow min-w-0">
+            <p class="font-label-md text-label-md text-on-surface">{{ project.title }}</p>
+            <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">{{ project.description|truncatewords:10 }}</p>
+            {% if project.url %}<a href="{{ project.url }}" target="_blank" class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-xs mt-0.5"><span class="material-symbols-outlined text-[12px]">open_in_new</span>{{ project.url|truncatechars:30 }}</a>{% endif %}
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_project"/>
+            <input type="hidden" name="project_id" value="{{ project.id }}"/>
+            <button type="submit" class="text-error hover:bg-error-container p-xs rounded-lg transition-colors shrink-0" title="Delete project"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+          </form>
+        </div>
+        {% empty %}
+        <p class="font-body-sm text-body-sm text-on-surface-variant text-center py-md border border-dashed border-outline-variant rounded-xl mb-sm">No projects yet. Add your first project below.</p>
+        {% endfor %}
+
+        <!-- Add Project Form -->
+        <details class="mt-sm">
+          <summary class="font-label-md text-label-md text-primary cursor-pointer flex items-center gap-xs hover:underline select-none p-xs rounded-lg hover:bg-primary/5 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">add_circle</span> Add New Project
+          </summary>
+          <form method="post" enctype="multipart/form-data" class="mt-md flex flex-col gap-md border border-outline-variant rounded-xl p-md bg-surface-container/30" id="add-project-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_project"/>
+            <input type="hidden" name="order" value="0"/>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Project Title <span class="text-error">*</span></label>
+              {{ project_form.title }}
+            </div>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Description</label>
+              {{ project_form.description }}
+            </div>
+
+            <!-- Drag & Drop Image Upload Zone -->
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Project Image <span class="text-on-surface-variant font-normal">(optional)</span></label>
+              <div class="image-drop-zone" id="project-drop-zone">
+                <input type="file" name="image" accept="image/*" id="project-image-input"/>
+                <div class="drop-placeholder w-full flex flex-col items-center gap-sm py-lg">
+                  <div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[32px] text-outline">cloud_upload</span>
+                  </div>
+                  <div class="text-center">
+                    <p class="font-label-md text-label-md text-on-surface">Drop image here or <span class="text-primary">click to browse</span></p>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">PNG, JPG, GIF, WebP — max 10 MB</p>
+                  </div>
+                </div>
+                <div class="drop-preview w-full flex flex-col items-center gap-sm py-sm">
+                  <img id="project-image-preview" src="" alt="Preview" class="max-h-44 max-w-full rounded-xl object-contain shadow-sm"/>
+                  <div class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+                    <p class="font-label-sm text-label-sm text-on-surface-variant" id="project-image-name"></p>
+                    <button type="button" onclick="clearProjectImage()" class="font-label-sm text-label-sm text-error hover:underline">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Project URL</label>
+              {{ project_form.url }}
+            </div>
+            <div class="flex gap-sm">
+              <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-md py-xs rounded-lg transition-colors flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[18px]">add</span> Add Project
+              </button>
+            </div>
+          </form>
+        </details>
+      </div>
+
+      <!-- Skills Section -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-primary text-[20px]">psychology</span> Skills
+          <span class="ml-auto font-label-sm text-label-sm text-on-surface-variant font-normal">{{ skills|length }} skill{{ skills|length|pluralize }}</span>
+        </h2>
+        <div class="flex flex-wrap gap-xs mb-md min-h-[40px]">
+          {% for skill in skills %}
+          <div class="flex items-center gap-xs px-sm py-xs rounded-full border border-outline-variant bg-surface-container group">
+            <span class="font-label-md text-label-md text-on-surface">{{ skill.name }}</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant capitalize bg-surface-container-high px-xs py-0.5 rounded-full">{{ skill.proficiency }}</span>
+            <form method="post" class="inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_skill"/>
+              <input type="hidden" name="skill_id" value="{{ skill.id }}"/>
+              <button type="submit" class="text-error ml-xs opacity-0 group-hover:opacity-100 transition-opacity" title="Remove skill"><span class="material-symbols-outlined text-[14px]">close</span></button>
+            </form>
+          </div>
+          {% empty %}
+          <p class="font-body-sm text-body-sm text-on-surface-variant">No skills added yet.</p>
+          {% endfor %}
+        </div>
+        <details>
+          <summary class="font-label-md text-label-md text-primary cursor-pointer flex items-center gap-xs hover:underline select-none p-xs rounded-lg hover:bg-primary/5 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">add_circle</span> Add Skill
+          </summary>
+          <form method="post" class="mt-sm flex gap-sm items-end border border-outline-variant rounded-xl p-md flex-wrap bg-surface-container/30">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_skill"/>
+            <div class="flex-grow min-w-[140px]">
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Skill name</label>
+              {{ skill_form.name }}
+            </div>
+            <div class="w-40">
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Level</label>
+              {{ skill_form.proficiency }}
+            </div>
+            <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-md py-xs rounded-lg transition-colors flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[18px]">add</span> Add
+            </button>
+          </form>
+        </details>
+      </div>
+
+      <!-- Experience Section -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-primary text-[20px]">work</span> Work Experience
+          <span class="ml-auto font-label-sm text-label-sm text-on-surface-variant font-normal">{{ experiences|length }}</span>
+        </h2>
+        {% for exp in experiences %}
+        <div class="flex items-start justify-between p-sm border border-outline-variant rounded-xl mb-sm gap-sm hover:border-primary/40 transition-colors">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary text-[18px]">business</span>
+          </div>
+          <div class="flex-grow min-w-0">
+            <p class="font-label-md text-label-md text-on-surface">{{ exp.role }}</p>
+            <p class="font-body-sm text-body-sm text-primary">{{ exp.company }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant">{{ exp.period }}</p>
+            {% if exp.description %}<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mt-xs">{{ exp.description }}</p>{% endif %}
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_experience"/>
+            <input type="hidden" name="experience_id" value="{{ exp.id }}"/>
+            <button type="submit" class="text-error hover:bg-error-container p-xs rounded-lg transition-colors" title="Delete"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+          </form>
+        </div>
+        {% empty %}
+        <p class="font-body-sm text-body-sm text-on-surface-variant text-center py-md border border-dashed border-outline-variant rounded-xl mb-sm">No work experience added yet.</p>
+        {% endfor %}
+        <details class="mt-sm">
+          <summary class="font-label-md text-label-md text-primary cursor-pointer flex items-center gap-xs hover:underline select-none p-xs rounded-lg hover:bg-primary/5 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">add_circle</span> Add Experience
+          </summary>
+          <form method="post" class="mt-md flex flex-col gap-md border border-outline-variant rounded-xl p-md bg-surface-container/30">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_experience"/>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Company / Organization <span class="text-error">*</span></label>
+                {{ experience_form.company }}
+              </div>
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Job Title / Role <span class="text-error">*</span></label>
+                {{ experience_form.role }}
+              </div>
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Start Year</label>
+                {{ experience_form.start_year }}
+              </div>
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">End Year <span class="font-normal text-on-surface-variant">(blank = present)</span></label>
+                {{ experience_form.end_year }}
+              </div>
+            </div>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Description</label>
+              {{ experience_form.description }}
+            </div>
+            <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-md py-xs rounded-lg transition-colors flex items-center gap-xs self-start">
+              <span class="material-symbols-outlined text-[18px]">add</span> Add Experience
+            </button>
+          </form>
+        </details>
+      </div>
+
+      <!-- Education Section -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-primary text-[20px]">school</span> Education
+          <span class="ml-auto font-label-sm text-label-sm text-on-surface-variant font-normal">{{ educations|length }}</span>
+        </h2>
+        {% for edu in educations %}
+        <div class="flex items-start justify-between p-sm border border-outline-variant rounded-xl mb-sm gap-sm hover:border-primary/40 transition-colors">
+          <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary text-[18px]">school</span>
+          </div>
+          <div class="flex-grow min-w-0">
+            <p class="font-label-md text-label-md text-on-surface">{{ edu.institution }}</p>
+            {% if edu.degree %}<p class="font-body-sm text-body-sm text-primary">{{ edu.degree }}{% if edu.field_of_study %} – {{ edu.field_of_study }}{% endif %}</p>{% endif %}
+            <p class="font-label-sm text-label-sm text-on-surface-variant">{{ edu.period }}</p>
+            {% if edu.description %}<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mt-xs">{{ edu.description }}</p>{% endif %}
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_education"/>
+            <input type="hidden" name="education_id" value="{{ edu.id }}"/>
+            <button type="submit" class="text-error hover:bg-error-container p-xs rounded-lg transition-colors" title="Delete"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+          </form>
+        </div>
+        {% empty %}
+        <p class="font-body-sm text-body-sm text-on-surface-variant text-center py-md border border-dashed border-outline-variant rounded-xl mb-sm">No education added yet.</p>
+        {% endfor %}
+        <details class="mt-sm">
+          <summary class="font-label-md text-label-md text-primary cursor-pointer flex items-center gap-xs hover:underline select-none p-xs rounded-lg hover:bg-primary/5 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">add_circle</span> Add Education
+          </summary>
+          <form method="post" class="mt-md flex flex-col gap-md border border-outline-variant rounded-xl p-md bg-surface-container/30">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_education"/>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Institution <span class="text-error">*</span></label>
+              {{ education_form.institution }}
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Degree</label>
+                {{ education_form.degree }}
+              </div>
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Field of Study</label>
+                {{ education_form.field_of_study }}
+              </div>
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Start Year</label>
+                {{ education_form.start_year }}
+              </div>
+              <div>
+                <label class="block font-label-sm text-label-sm text-on-surface mb-xs">End Year <span class="font-normal text-on-surface-variant">(blank = current)</span></label>
+                {{ education_form.end_year }}
+              </div>
+            </div>
+            <div>
+              <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Description <span class="font-normal text-on-surface-variant">(optional)</span></label>
+              {{ education_form.description }}
+            </div>
+            <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-md py-xs rounded-lg transition-colors flex items-center gap-xs self-start">
+              <span class="material-symbols-outlined text-[18px]">add</span> Add Education
+            </button>
+          </form>
+        </details>
+      </div>
+
+      <!-- Contact Section -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+          <span class="material-symbols-outlined text-primary text-[20px]">contact_mail</span> Contact Info
+        </h2>
+        <form method="post" class="flex flex-col gap-sm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_contact"/>
+          {% with contact=portfolio.get_contact %}
+          <div>
+            <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Email</label>
+            <input type="email" name="contact_email" value="{{ contact.email }}" placeholder="your@email.com" class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary"/>
+          </div>
+          <div>
+            <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Phone</label>
+            <input type="text" name="contact_phone" value="{{ contact.phone }}" placeholder="+1 555 000 0000" class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary"/>
+          </div>
+          <div>
+            <label class="block font-label-sm text-label-sm text-on-surface mb-xs">Location</label>
+            <input type="text" name="contact_location" value="{{ contact.location }}" placeholder="City, Country" class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary"/>
+          </div>
+          {% endwith %}
+          <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-md py-xs rounded-lg transition-colors self-start">Save Contact</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sidebar (1/3) -->
+    <div class="flex flex-col gap-md">
+      <!-- Publish Controls -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Publish</h3>
+        <form method="post" class="flex flex-col gap-sm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_status"/>
+          <div class="flex flex-col gap-xs">
+            {% for val, label in portfolio.STATUS_CHOICES %}
+            <label class="flex items-center gap-sm cursor-pointer p-xs rounded-lg hover:bg-surface-container transition-colors">
+              <input type="radio" name="status" value="{{ val }}" {% if portfolio.status == val %}checked{% endif %} class="text-primary focus:ring-primary"/>
+              <div>
+                <span class="font-label-md text-label-md text-on-surface">{{ label }}</span>
+                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                  {% if val == 'draft' %}Not visible to anyone{% elif val == 'private' %}Only you{% else %}Visible to everyone{% endif %}
+                </p>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          <button type="submit" class="w-full font-label-md text-label-md bg-primary text-on-primary py-sm rounded-lg hover:bg-on-primary-fixed-variant transition-colors mt-sm">Update Status</button>
+        </form>
+      </div>
+
+      <!-- Title -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Portfolio Title</h3>
+        <form method="post" class="flex flex-col gap-sm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update_title"/>
+          <input type="text" name="title" value="{{ portfolio.title }}" class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary"/>
+          <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary py-xs rounded-lg transition-colors">Update Title</button>
+        </form>
+      </div>
+
+      <!-- Stats -->
+      <div class="bg-surface-container border border-outline-variant rounded-xl p-md">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-md uppercase tracking-wider">Portfolio Stats</h3>
+        <div class="grid grid-cols-2 gap-sm text-center">
+          <div class="bg-surface-container-lowest rounded-lg p-sm">
+            <p class="font-headline-sm text-headline-sm text-primary font-bold">{{ portfolio.views_count }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Views</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-lg p-sm">
+            <p class="font-headline-sm text-headline-sm font-bold text-on-surface">{{ projects|length }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Projects</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-lg p-sm">
+            <p class="font-headline-sm text-headline-sm font-bold text-on-surface">{{ skills|length }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Skills</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-lg p-sm">
+            <p class="font-headline-sm text-headline-sm font-bold text-on-surface">{{ experiences|length }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Experience</p>
+          </div>
+        </div>
+        <div class="mt-md">
+          <div class="flex justify-between items-center mb-xs">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Profile completeness</span>
+            <span class="font-label-sm text-label-sm text-primary" id="completeness-pct">–</span>
+          </div>
+          <div class="h-2 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full bg-primary rounded-full transition-all duration-700" id="completeness-bar" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wider">Quick Links</h3>
+        <div class="flex flex-col gap-xs">
+          <a href="{% url 'portfolio_detail' portfolio.slug %}" class="flex items-center gap-sm px-xs py-xs rounded-lg hover:bg-surface-container transition-colors font-body-sm text-body-sm text-on-surface">
+            <span class="material-symbols-outlined text-primary text-[18px]">open_in_new</span> View Live Portfolio
+          </a>
+          <a href="{% url 'portfolio_dashboard' %}" class="flex items-center gap-sm px-xs py-xs rounded-lg hover:bg-surface-container transition-colors font-body-sm text-body-sm text-on-surface">
+            <span class="material-symbols-outlined text-primary text-[18px]">dashboard</span> My Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Completeness bar ─────────────────────────────────────────────
+  const checks = [
+    {{ portfolio.get_about|length }} > 10,
+    {{ projects|length }} > 0,
+    {{ skills|length }} > 0,
+    {{ experiences|length }} > 0,
+    {{ educations|length }} > 0,
+    {% with c=portfolio.get_contact %}{{ c.email|length }} > 0 || {{ c.phone|length }} > 0{% endwith %},
+    '{{ portfolio.title }}'.length > 0,
+  ];
+  const pct = Math.round(checks.filter(Boolean).length / checks.length * 100);
+  document.getElementById('completeness-pct').textContent = pct + '%';
+  document.getElementById('completeness-bar').style.width = pct + '%';
+  if (pct >= 80) document.getElementById('completeness-bar').className = document.getElementById('completeness-bar').className.replace('bg-primary','bg-green-500');
+  else if (pct >= 50) document.getElementById('completeness-bar').className = document.getElementById('completeness-bar').className.replace('bg-primary','bg-yellow-500');
+
+  // ── Drag & Drop Image Upload ─────────────────────────────────────
+  function initDropZone(dropZoneEl, inputEl, previewEl, nameEl) {
+    if (!dropZoneEl || !inputEl) return;
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropZoneEl.addEventListener(evt, e => { e.preventDefault(); dropZoneEl.classList.add('drag-over'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      dropZoneEl.addEventListener(evt, e => { e.preventDefault(); dropZoneEl.classList.remove('drag-over'); });
+    });
+    dropZoneEl.addEventListener('drop', e => {
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        inputEl.files = dt.files;
+        showImagePreview(file, dropZoneEl, previewEl, nameEl);
+      }
+    });
+    inputEl.addEventListener('change', () => {
+      if (inputEl.files[0]) showImagePreview(inputEl.files[0], dropZoneEl, previewEl, nameEl);
+    });
+  }
+
+  function showImagePreview(file, dropZoneEl, previewEl, nameEl) {
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image must be under 10 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (previewEl) previewEl.src = e.target.result;
+      if (nameEl) nameEl.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      dropZoneEl.classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearProjectImage() {
+    const dz = document.getElementById('project-drop-zone');
+    const inp = document.getElementById('project-image-input');
+    const prev = document.getElementById('project-image-preview');
+    const nm = document.getElementById('project-image-name');
+    if (inp) inp.value = '';
+    if (prev) prev.src = '';
+    if (nm) nm.textContent = '';
+    if (dz) dz.classList.remove('has-image');
+  }
+
+  initDropZone(
+    document.getElementById('project-drop-zone'),
+    document.getElementById('project-image-input'),
+    document.getElementById('project-image-preview'),
+    document.getElementById('project-image-name')
+  );
+</script>
+{% endblock %}

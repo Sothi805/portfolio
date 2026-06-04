@@ -1,0 +1,205 @@
+{% extends "admin_dashboard/base_admin.html" %}
+{% block title %}{{ profile_user.username }} – Admin – ProPortfolio{% endblock %}
+
+{% block admin_content %}
+<!-- Breadcrumb -->
+<nav class="flex items-center gap-xs mb-lg font-label-sm text-label-sm text-on-surface-variant">
+  <a href="{% url 'admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+  <a href="{% url 'admin_users' %}" class="hover:text-primary transition-colors">Users</a>
+  <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+  <span class="text-on-surface">{{ profile_user.username }}</span>
+</nav>
+
+<!-- Header -->
+<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-md mb-xl">
+  <div class="flex items-center gap-md">
+    {% if profile_user.avatar %}
+      <img src="{{ profile_user.avatar.url }}" class="w-16 h-16 rounded-full object-cover border-2 border-outline-variant shadow" alt="Avatar"/>
+    {% else %}
+      <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-3xl font-bold text-white border-2 border-outline-variant shadow">{{ profile_user.username|first|upper }}</div>
+    {% endif %}
+    <div>
+      <h1 class="font-headline-md text-headline-md text-on-background">{{ profile_user.username }}</h1>
+      <p class="font-body-sm text-body-sm text-on-surface-variant">{{ profile_user.email }}</p>
+      <div class="flex items-center gap-xs mt-xs flex-wrap">
+        <span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full capitalize {% if profile_user.status == 'active' %}bg-green-100 text-green-700{% elif profile_user.status == 'suspended' %}bg-yellow-100 text-yellow-700{% else %}bg-error-container text-error{% endif %}">{{ profile_user.status }}</span>
+        {% if profile_user.is_staff %}<span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full bg-primary-fixed text-primary">Staff</span>{% endif %}
+        {% if profile_user.is_superuser %}<span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container">Superuser</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center gap-sm flex-wrap">
+    {% if not profile_user.is_staff %}
+    <form method="post" action="{% url 'admin_connect' profile_user.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="flex items-center gap-xs font-label-md text-label-md bg-amber-500 text-white px-md py-xs rounded-lg hover:bg-amber-600 transition-colors shadow-sm">
+        <span class="material-symbols-outlined text-[16px]">link</span> Connect (Preview)
+      </button>
+    </form>
+    {% endif %}
+    <!-- Bulk status actions -->
+    <form method="post" action="{% url 'admin_users' %}">
+      {% csrf_token %}
+      <input type="hidden" name="user_ids" value="{{ profile_user.pk }}"/>
+      {% if profile_user.status == 'active' %}
+        <input type="hidden" name="action" value="suspend"/>
+        <button type="submit" class="font-label-md text-label-md border border-yellow-400 text-yellow-700 px-md py-xs rounded-lg hover:bg-yellow-50 transition-colors" onclick="return confirm('Suspend {{ profile_user.username }}?')">Suspend</button>
+      {% elif profile_user.status == 'suspended' %}
+        <input type="hidden" name="action" value="activate"/>
+        <button type="submit" class="font-label-md text-label-md border border-green-400 text-green-700 px-md py-xs rounded-lg hover:bg-green-50 transition-colors">Activate</button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Profile Info + Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-xl">
+  <!-- Bio card -->
+  <div class="md:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary text-[18px]">person</span> Profile Info
+    </h2>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+      <div>
+        <dt class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Username</dt>
+        <dd class="font-body-md text-body-md text-on-surface">{{ profile_user.username }}</dd>
+      </div>
+      <div>
+        <dt class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Email</dt>
+        <dd class="font-body-md text-body-md text-on-surface">{{ profile_user.email }}</dd>
+      </div>
+      <div>
+        <dt class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Joined</dt>
+        <dd class="font-body-md text-body-md text-on-surface">{{ profile_user.date_joined|date:"M d, Y" }} ({{ profile_user.date_joined|timesince }} ago)</dd>
+      </div>
+      <div>
+        <dt class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Last Login</dt>
+        <dd class="font-body-md text-body-md text-on-surface">{% if profile_user.last_login %}{{ profile_user.last_login|date:"M d, Y H:i" }}{% else %}Never{% endif %}</dd>
+      </div>
+      {% if profile_user.bio %}
+      <div class="sm:col-span-2">
+        <dt class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-xs">Bio</dt>
+        <dd class="font-body-md text-body-md text-on-surface leading-relaxed">{{ profile_user.bio }}</dd>
+      </div>
+      {% endif %}
+    </dl>
+  </div>
+
+  <!-- Stats card -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary text-[18px]">bar_chart</span> Activity
+    </h2>
+    <div class="grid grid-cols-2 gap-sm">
+      <div class="text-center p-sm bg-surface-container rounded-xl">
+        <p class="text-[28px] font-bold text-primary">{{ portfolios|length }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Portfolios</p>
+      </div>
+      <div class="text-center p-sm bg-surface-container rounded-xl">
+        <p class="text-[28px] font-bold text-on-surface">{{ threads|length }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Threads</p>
+      </div>
+      <div class="text-center p-sm bg-surface-container rounded-xl col-span-2">
+        <p class="text-[28px] font-bold text-on-surface">{{ replies|length }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Replies</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Portfolios -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden mb-xl">
+  <div class="p-md border-b border-outline-variant flex items-center justify-between">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary text-[18px]">work</span> Portfolios
+    </h2>
+    <span class="font-label-sm text-label-sm text-on-surface-variant">{{ portfolios|length }} total</span>
+  </div>
+  {% if portfolios %}
+  <table class="w-full">
+    <thead><tr class="border-b border-outline-variant bg-surface-container">
+      <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant">Title</th>
+      <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant hidden md:table-cell">Template</th>
+      <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant">Status</th>
+      <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant hidden md:table-cell">Views</th>
+      <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for p in portfolios %}
+      <tr class="border-b border-outline-variant/50 hover:bg-surface-container transition-colors">
+        <td class="p-sm">
+          <a href="{% url 'admin_portfolio_detail' p.pk %}" class="font-label-md text-label-md text-on-surface hover:text-primary transition-colors">{{ p.title }}</a>
+          {% if p.is_featured %}<span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded ml-xs">Featured</span>{% endif %}
+        </td>
+        <td class="p-sm font-body-sm text-body-sm text-on-surface-variant hidden md:table-cell">{{ p.template.name|default:"—" }}</td>
+        <td class="p-sm"><span class="font-label-sm text-label-sm px-xs py-0.5 rounded capitalize {% if p.status == 'public' %}bg-green-100 text-green-700{% elif p.status == 'private' %}bg-yellow-100 text-yellow-700{% else %}bg-surface-container text-on-surface-variant{% endif %}">{{ p.status }}</span></td>
+        <td class="p-sm font-body-sm text-body-sm text-on-surface-variant hidden md:table-cell">{{ p.views_count }}</td>
+        <td class="p-sm">
+          <div class="flex gap-xs">
+            <a href="{% url 'admin_portfolio_detail' p.pk %}" class="font-label-sm text-label-sm border border-outline-variant px-xs py-0.5 rounded hover:border-primary hover:text-primary transition-colors">View</a>
+            {% if p.status == 'public' %}
+            <a href="{% url 'portfolio_detail' p.slug %}" target="_blank" class="font-label-sm text-label-sm border border-outline-variant px-xs py-0.5 rounded hover:border-green-400 hover:text-green-700 transition-colors">Live ↗</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="p-md font-body-sm text-body-sm text-on-surface-variant text-center">No portfolios yet.</p>
+  {% endif %}
+</div>
+
+<!-- Forum Threads -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-xl">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+    <div class="p-md border-b border-outline-variant flex items-center justify-between">
+      <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary text-[18px]">forum</span> Recent Threads
+      </h2>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Last 10</span>
+    </div>
+    {% if threads %}
+    {% for t in threads %}
+    <a href="{% url 'forum_thread_detail' t.category.slug t.slug %}" class="flex items-start gap-sm p-sm border-b border-outline-variant/50 hover:bg-surface-container transition-colors">
+      <div class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant font-bold text-body-sm shrink-0 mt-0.5">{{ t.category.name|first|upper }}</div>
+      <div class="flex-grow min-w-0">
+        <p class="font-label-md text-label-md text-on-surface truncate">{{ t.title }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">{{ t.category.name }} · {{ t.created_at|date:"M d, Y" }} · {{ t.views_count }} views</p>
+      </div>
+    </a>
+    {% endfor %}
+    {% else %}
+    <p class="p-md font-body-sm text-body-sm text-on-surface-variant text-center">No threads yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Moderation History -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+    <div class="p-md border-b border-outline-variant">
+      <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary text-[18px]">gavel</span> Moderation History
+      </h2>
+    </div>
+    {% if moderation_actions %}
+    {% for action in moderation_actions %}
+    <div class="flex items-start gap-sm p-sm border-b border-outline-variant/50">
+      <span class="material-symbols-outlined text-[18px] mt-0.5 shrink-0 {% if action.action_type == 'delete' %}text-error{% elif action.action_type == 'suspend' %}text-yellow-600{% else %}text-on-surface-variant{% endif %}">gavel</span>
+      <div class="flex-grow min-w-0">
+        <p class="font-label-md text-label-md text-on-surface capitalize">{{ action.action_type }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">by {{ action.admin_user.username }} · {{ action.created_at|date:"M d, Y" }}</p>
+        {% if action.reason %}<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 italic truncate">{{ action.reason }}</p>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="p-md font-body-sm text-body-sm text-on-surface-variant text-center">No moderation actions.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

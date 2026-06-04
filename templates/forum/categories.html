@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}Community Forum – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-xl">
+  <!-- Forum Hero -->
+  <div class="relative overflow-hidden rounded-2xl mb-xl shadow-sm">
+    <div class="hero-gradient absolute inset-0"></div>
+    <div class="absolute inset-0 opacity-[0.07]" style="background-image: radial-gradient(circle at 2px 2px, #fff 1.5px, transparent 0); background-size: 24px 24px;"></div>
+    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between p-lg md:p-xl gap-md">
+      <div>
+        <h1 class="font-headline-lg text-headline-lg text-white mb-xs">Community Forum</h1>
+        <p class="font-body-lg text-body-lg text-white/80 max-w-xl">Connect with professionals, share insights, and learn from the community.</p>
+        <div class="flex items-center gap-md mt-sm flex-wrap">
+          <span class="font-label-sm text-label-sm text-white/70 flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[14px]">forum</span>
+            {% if categories %}{{ categories|length }} categories{% endif %}
+          </span>
+          {% if recent_threads %}
+          <span class="font-label-sm text-label-sm text-white/70 flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[14px]">chat_bubble</span>
+            {{ recent_threads|length }} recent discussions
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      {% if user.is_authenticated %}
+      <div class="flex flex-col gap-xs shrink-0">
+        <p class="font-label-sm text-label-sm text-white/70 text-center">Choose a category to post in:</p>
+        <div class="flex flex-wrap gap-xs justify-center">
+          {% for category in categories %}
+          <a href="{% url 'forum_create_thread' category.slug %}" class="font-label-sm text-label-sm bg-white/20 text-white border border-white/30 px-sm py-xs rounded-full hover:bg-white/30 transition-colors backdrop-blur-sm flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[14px]">{{ category.icon }}</span>{{ category.name|truncatewords:2 }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <a href="{% url 'register' %}" class="font-label-md text-label-md bg-white text-primary px-lg py-sm rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all flex items-center gap-xs shrink-0 shadow-md">
+        <span class="material-symbols-outlined text-[18px]">person_add</span> Join the Community
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+    <!-- Main Content -->
+    <div class="lg:col-span-8 flex flex-col gap-xl">
+
+      <!-- Categories Bento Grid -->
+      <section>
+        <div class="flex items-center justify-between mb-md">
+          <h2 class="font-headline-sm text-headline-sm text-on-surface">Browse Categories</h2>
+          <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-sm py-xs rounded-full">
+            {{ categories|length }} categor{{ categories|length|pluralize:"y,ies" }}
+          </span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-sm">
+          {% for category in categories %}
+          <div class="{% if forloop.first or forloop.counter == 4 %}md:col-span-2{% endif %} bg-surface-container-lowest border border-outline-variant rounded-2xl p-md hover:-translate-y-[2px] hover:border-primary hover:shadow-md card-hover group flex flex-col justify-between min-h-[160px] relative overflow-hidden transition-all">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-surface-container-high rounded-bl-full opacity-40 -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+            <a href="{% url 'forum_thread_list' category.slug %}" class="relative z-10 flex items-start gap-sm mb-md flex-grow">
+              <div class="p-2.5 bg-primary rounded-xl text-white flex-shrink-0 shadow-md">
+                <span class="material-symbols-outlined icon-fill text-[22px]">{{ category.icon }}</span>
+              </div>
+              <div>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">{{ category.name }}</h3>
+                <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">{{ category.description|truncatewords:12 }}</p>
+              </div>
+            </a>
+            <div class="relative z-10 flex items-center justify-between border-t border-outline-variant pt-sm">
+              <a href="{% url 'forum_thread_list' category.slug %}" class="flex items-center gap-xs font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-[15px]">chat_bubble</span>
+                <span>{{ category.thread_count }} post{{ category.thread_count|pluralize }}</span>
+              </a>
+              {% if user.is_authenticated %}
+              <a href="{% url 'forum_create_thread' category.slug %}" class="flex items-center gap-xs bg-primary text-white px-sm py-0.5 rounded-full hover:bg-on-primary-fixed-variant transition-colors font-label-sm text-label-sm shadow-sm">
+                <span class="material-symbols-outlined text-[13px]">add</span> Post
+              </a>
+              {% else %}
+              <a href="{% url 'forum_thread_list' category.slug %}" class="flex items-center gap-xs font-label-sm text-label-sm text-primary">
+                Browse <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="md:col-span-3 text-center py-xl border-2 border-dashed border-outline-variant rounded-2xl bg-surface-container-lowest">
+            <span class="material-symbols-outlined text-[48px] text-outline mb-md block">forum</span>
+            <p class="font-body-md text-body-md text-on-surface-variant">No categories yet.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- Recent Discussions -->
+      {% if recent_threads %}
+      <section>
+        <div class="flex items-center justify-between mb-md">
+          <h2 class="font-headline-sm text-headline-sm text-on-surface">Recent Discussions</h2>
+          <span class="font-label-sm text-label-sm text-on-surface-variant">Latest {{ recent_threads|length }}</span>
+        </div>
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm divide-y divide-outline-variant">
+          {% for thread in recent_threads %}
+          <a href="{% url 'forum_thread_detail' thread.category.slug thread.slug %}"
+             class="flex items-center gap-md px-md py-sm hover:bg-surface-container-low transition-colors group">
+            <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-label-md text-label-md shadow-sm">
+              {{ thread.category.name|first|upper }}{{ thread.category.name|slice:"1:2" }}
+            </div>
+            <div class="flex-grow min-w-0">
+              <p class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors truncate">{{ thread.title }}</p>
+              <div class="flex items-center gap-xs mt-0.5 flex-wrap">
+                <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.user.username }}</span>
+                <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+                <span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded-full">{{ thread.category.name }}</span>
+                <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.created_at|timesince }} ago</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-xs shrink-0 bg-surface-container px-xs py-0.5 rounded-full">
+              <span class="material-symbols-outlined text-[14px] text-on-surface-variant">chat_bubble</span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.reply_count }}</span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="lg:col-span-4 flex flex-col gap-md">
+
+      <!-- Leaderboard mini -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm sticky top-24">
+        <div class="flex items-center justify-between px-md pt-md pb-sm border-b border-outline-variant">
+          <div class="flex items-center gap-xs">
+            <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <span class="material-symbols-outlined text-white text-[16px]">emoji_events</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">Top Contributors</h3>
+          </div>
+          <a href="{% url 'forum_leaderboard' %}" class="font-label-sm text-label-sm text-primary hover:underline">View All</a>
+        </div>
+        <div class="flex flex-col divide-y divide-outline-variant">
+          {% for up in top_users %}
+          <div class="flex items-center gap-sm px-md py-sm">
+            <span class="w-5 text-center shrink-0">
+              {% if forloop.counter == 1 %}<span class="material-symbols-outlined text-amber-600 icon-fill text-[16px]">emoji_events</span>
+              {% elif forloop.counter == 2 %}<span class="material-symbols-outlined text-slate-500 icon-fill text-[14px]">emoji_events</span>
+              {% elif forloop.counter == 3 %}<span class="material-symbols-outlined text-amber-600 icon-fill text-[14px]">emoji_events</span>
+              {% else %}<span class="font-label-sm text-label-sm text-on-surface-variant">{{ forloop.counter }}</span>{% endif %}
+            </span>
+            {% if up.user.avatar %}
+            <img src="{{ up.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ up.user.username }}">
+            {% else %}
+            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ up.user.username|first|upper }}</div>
+            {% endif %}
+            <p class="font-label-md text-label-md text-on-surface truncate flex-grow">{{ up.user.username }}</p>
+            <span class="font-label-sm text-label-sm text-primary font-bold bg-primary-fixed px-xs py-0.5 rounded-full">{{ up.total_points }} pts</span>
+          </div>
+          {% empty %}
+          <p class="font-body-sm text-body-sm text-on-surface-variant text-center py-md px-md">No contributors yet.</p>
+          {% endfor %}
+        </div>
+        <div class="px-md py-sm border-t border-outline-variant">
+          <a href="{% url 'forum_leaderboard' %}" class="block w-full py-sm bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors text-center shadow-sm">
+            Full Leaderboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Community Guidelines -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl p-md shadow-sm">
+        <div class="flex items-center gap-xs mb-md pb-sm border-b border-outline-variant">
+          <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+            <span class="material-symbols-outlined text-white text-[16px]">shield</span>
+          </div>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Community Guidelines</h3>
+        </div>
+        <div class="flex flex-col gap-sm">
+          <div class="flex items-start gap-sm"><span class="material-symbols-outlined text-primary text-[16px] mt-0.5 shrink-0">check_circle</span><p class="font-body-sm text-body-sm text-on-surface-variant">Be respectful and constructive</p></div>
+          <div class="flex items-start gap-sm"><span class="material-symbols-outlined text-primary text-[16px] mt-0.5 shrink-0">check_circle</span><p class="font-body-sm text-body-sm text-on-surface-variant">Stay on topic in each category</p></div>
+          <div class="flex items-start gap-sm"><span class="material-symbols-outlined text-primary text-[16px] mt-0.5 shrink-0">check_circle</span><p class="font-body-sm text-body-sm text-on-surface-variant">Share knowledge generously</p></div>
+          <div class="flex items-start gap-sm"><span class="material-symbols-outlined text-primary text-[16px] mt-0.5 shrink-0">check_circle</span><p class="font-body-sm text-body-sm text-on-surface-variant">No spam or self-promotion</p></div>
+          <div class="flex items-start gap-sm"><span class="material-symbols-outlined text-primary text-[16px] mt-0.5 shrink-0">check_circle</span><p class="font-body-sm text-body-sm text-on-surface-variant">Report violations to moderators</p></div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}New Thread – {{ category.name }} – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto px-margin-mobile py-xl">
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-xs text-on-surface-variant font-body-sm text-body-sm mb-lg">
+    <a href="{% url 'forum_categories' %}" class="hover:text-primary">Forum</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <a href="{% url 'forum_thread_list' category.slug %}" class="hover:text-primary">{{ category.name }}</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <span class="text-on-surface">New Thread</span>
+  </div>
+
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm overflow-hidden">
+    <!-- Header with category color -->
+    <div class="bg-primary/5 border-b border-outline-variant p-lg flex items-center gap-sm">
+      <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-white icon-fill">{{ category.icon }}</span>
+      </div>
+      <div>
+        <h1 class="font-headline-md text-headline-md text-on-background">Start a New Thread</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs mt-xs">
+          <span class="material-symbols-outlined text-[14px] text-primary">forum</span>
+          Posting in <span class="text-primary font-label-sm text-label-sm ml-xs">{{ category.name }}</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="p-lg">
+      <form method="post" class="flex flex-col gap-md">
+        {% csrf_token %}
+        <div>
+          <label class="block font-label-md text-label-md text-on-surface mb-xs">Thread Title <span class="text-error">*</span></label>
+          <input type="text" name="title" required maxlength="300" placeholder="Enter a clear, descriptive title..." class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-body-md"/>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">A clear title helps others find your thread</p>
+        </div>
+        <div>
+          <label class="block font-label-md text-label-md text-on-surface mb-xs">Content <span class="text-error">*</span></label>
+          <textarea name="content" required rows="10" placeholder="Share your thoughts, questions, or insights in detail..." class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-body-md resize-none"></textarea>
+        </div>
+
+        <!-- Writing tips -->
+        <div class="bg-surface-container rounded-xl p-md flex items-start gap-sm">
+          <span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">lightbulb</span>
+          <div>
+            <p class="font-label-md text-label-md text-on-surface mb-xs">Writing Tips</p>
+            <ul class="font-body-sm text-body-sm text-on-surface-variant space-y-xs list-none">
+              <li>• Be specific and provide context for your question</li>
+              <li>• Use a descriptive title that summarizes your topic</li>
+              <li>• Be respectful and follow community guidelines</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="flex gap-sm pt-sm border-t border-outline-variant">
+          <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-xl py-sm rounded-lg hover:bg-on-primary-fixed-variant hover:-translate-y-0.5 transition-all shadow-sm flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[18px]">send</span> Post Thread
+          </button>
+          <a href="{% url 'forum_thread_list' category.slug %}" class="font-label-md text-label-md border border-outline-variant text-on-surface px-xl py-sm rounded-lg hover:bg-surface-container transition-colors">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

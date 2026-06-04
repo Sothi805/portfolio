@@ -1,0 +1,76 @@
+{% extends "admin_dashboard/base_admin.html" %}
+{% block title %}Users – Admin – ProPortfolio{% endblock %}
+
+{% block admin_content %}
+<div class="flex items-center justify-between mb-xl">
+  <h1 class="font-headline-md text-headline-md text-on-background">User Management</h1>
+</div>
+<form method="get" class="flex gap-sm mb-lg flex-wrap">
+  <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search users..." class="px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary text-body-sm flex-grow max-w-xs"/>
+  <select name="status" class="px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary text-body-sm">
+    <option value="">All Statuses</option>
+    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+    <option value="suspended" {% if request.GET.status == 'suspended' %}selected{% endif %}>Suspended</option>
+    <option value="deleted" {% if request.GET.status == 'deleted' %}selected{% endif %}>Deleted</option>
+  </select>
+  <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-md py-xs rounded-lg">Filter</button>
+</form>
+<form method="post">
+  {% csrf_token %}
+  <div class="flex gap-sm mb-md">
+    <select name="action" class="px-sm py-xs border border-outline-variant rounded-lg text-body-sm focus:outline-none">
+      <option value="">Bulk Action...</option>
+      <option value="activate">Activate</option>
+      <option value="suspend">Suspend</option>
+      <option value="delete">Delete</option>
+    </select>
+    <button type="submit" class="font-label-md text-label-md border border-outline-variant text-on-surface px-md py-xs rounded-lg hover:bg-surface-container transition-colors">Apply</button>
+  </div>
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead><tr class="border-b border-outline-variant bg-surface-container">
+        <th class="p-sm text-left w-8"><input type="checkbox" onclick="document.querySelectorAll('[name=user_ids]').forEach(c=>c.checked=this.checked)"/></th>
+        <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant">User</th>
+        <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant hidden md:table-cell">Email</th>
+        <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant">Status</th>
+        <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant hidden md:table-cell">Joined</th>
+        <th class="p-sm text-left font-label-sm text-label-sm text-on-surface-variant">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="border-b border-outline-variant/50 hover:bg-surface-container transition-colors">
+          <td class="p-sm"><input type="checkbox" name="user_ids" value="{{ u.id }}"/></td>
+          <td class="p-sm">
+            <a href="{% url 'admin_user_detail' u.pk %}" class="flex items-center gap-sm hover:text-primary transition-colors">
+              <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ u.username|first|upper }}</div>
+              <span class="font-label-md text-label-md text-on-surface hover:text-primary">{{ u.username }}</span>
+            </a>
+          </td>
+          <td class="p-sm font-body-sm text-body-sm text-on-surface-variant hidden md:table-cell">{{ u.email }}</td>
+          <td class="p-sm"><span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full capitalize {% if u.status == 'active' %}bg-green-100 text-green-700{% elif u.status == 'suspended' %}bg-yellow-100 text-yellow-700{% else %}bg-error-container text-error{% endif %}">{{ u.status }}</span></td>
+          <td class="p-sm font-body-sm text-body-sm text-on-surface-variant hidden md:table-cell">{{ u.date_joined|date:"M d, Y" }}</td>
+          <td class="p-sm">
+            <div class="flex items-center gap-xs">
+              <a href="{% url 'admin_user_detail' u.pk %}" class="font-label-sm text-label-sm border border-outline-variant px-xs py-0.5 rounded hover:border-primary hover:text-primary transition-colors">View</a>
+              {% if not u.is_staff %}
+              <form method="post" action="{% url 'admin_connect' u.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="font-label-sm text-label-sm border border-amber-400 text-amber-700 px-xs py-0.5 rounded hover:bg-amber-50 transition-colors">Connect</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+{% if is_paginated %}
+<div class="flex justify-center gap-xs mt-lg">
+  {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="px-sm py-xs border border-outline-variant rounded-lg hover:border-primary hover:text-primary transition-colors font-label-md text-label-md">← Prev</a>{% endif %}
+  <span class="px-sm py-xs bg-surface-container rounded-lg font-label-md text-label-md">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="px-sm py-xs border border-outline-variant rounded-lg hover:border-primary hover:text-primary transition-colors font-label-md text-label-md">Next →</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

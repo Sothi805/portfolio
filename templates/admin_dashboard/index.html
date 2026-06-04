@@ -1,0 +1,128 @@
+{% extends "admin_dashboard/base_admin.html" %}
+{% block title %}Admin Dashboard – ProPortfolio{% endblock %}
+
+{% block admin_content %}
+<div class="flex items-center justify-between mb-xl">
+  <div>
+    <h1 class="font-headline-md text-headline-md text-on-background">Dashboard Overview</h1>
+    <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">ProPortfolio platform analytics at a glance</p>
+  </div>
+  <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-sm py-xs rounded-full flex items-center gap-xs">
+    <span class="w-2 h-2 rounded-full bg-green-400 pulse-dot"></span> Platform Live
+  </span>
+</div>
+
+<!-- Metrics Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-md mb-xl">
+  <a href="{% url 'admin_users' %}" class="stat-card col-span-2 md:col-span-1 bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+    <div class="flex items-center gap-xs mb-xs">
+      <span class="material-symbols-outlined text-primary text-[16px]">group</span>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Users</p>
+    </div>
+    <p class="text-[36px] font-bold text-primary leading-none group-hover:underline">{{ total_users }}</p>
+  </a>
+  <a href="{% url 'admin_users' %}?status=active" class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:border-green-400 hover:shadow-md transition-all cursor-pointer group">
+    <div class="flex items-center gap-xs mb-xs">
+      <span class="material-symbols-outlined text-green-600 text-[16px]">person_check</span>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Active (30d)</p>
+    </div>
+    <p class="text-[36px] font-bold text-green-600 leading-none group-hover:underline">{{ active_users }}</p>
+  </a>
+  <a href="{% url 'admin_portfolios' %}" class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+    <div class="flex items-center gap-xs mb-xs">
+      <span class="material-symbols-outlined text-on-surface-variant text-[16px]">work</span>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Portfolios</p>
+    </div>
+    <p class="text-[36px] font-bold text-on-background leading-none group-hover:underline">{{ total_portfolios }}</p>
+  </a>
+  <a href="{% url 'admin_portfolios' %}?status=public" class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:border-green-400 hover:shadow-md transition-all cursor-pointer group">
+    <div class="flex items-center gap-xs mb-xs">
+      <span class="material-symbols-outlined text-green-600 text-[16px]">public</span>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Public</p>
+    </div>
+    <p class="text-[36px] font-bold text-green-600 leading-none group-hover:underline">{{ public_portfolios }}</p>
+  </a>
+  <a href="{% url 'forum_categories' %}" class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+    <div class="flex items-center gap-xs mb-xs">
+      <span class="material-symbols-outlined text-on-surface-variant text-[16px]">forum</span>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Forum Posts</p>
+    </div>
+    <p class="text-[36px] font-bold text-on-background leading-none group-hover:underline">{{ forum_posts }}</p>
+  </a>
+  <a href="{% url 'admin_moderation' %}" class="stat-card bg-surface-container-lowest border border-{% if flagged_count %}error{% else %}outline-variant{% endif %} rounded-xl p-md shadow-sm hover:shadow-md transition-all cursor-pointer group">
+    <div class="flex items-center gap-xs mb-xs">
+      <span class="material-symbols-outlined {% if flagged_count %}text-error{% else %}text-on-surface-variant{% endif %} text-[16px]">flag</span>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Flagged</p>
+    </div>
+    <p class="text-[36px] font-bold {% if flagged_count %}text-error{% else %}text-on-background{% endif %} leading-none group-hover:underline">{{ flagged_count }}</p>
+    {% if flagged_count %}<span class="font-label-sm text-label-sm text-error mt-xs block">Review →</span>{% endif %}
+  </a>
+</div>
+
+<!-- Recent Activity -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+  <!-- Recent Users -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+    <div class="p-md border-b border-outline-variant flex items-center justify-between">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary text-[18px]">group</span> New Users
+      </h3>
+      <a href="{% url 'admin_users' %}" class="font-label-sm text-label-sm text-primary hover:underline">View All</a>
+    </div>
+    {% for u in recent_users %}
+    <a href="{% url 'admin_user_detail' u.pk %}" class="flex items-center gap-sm p-sm border-b border-outline-variant/50 hover:bg-surface-container transition-colors">
+      <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ u.username|first|upper }}</div>
+      <div class="flex-grow min-w-0">
+        <p class="font-label-md text-label-md text-on-surface truncate">{{ u.username }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">{{ u.date_joined|timesince }} ago</p>
+      </div>
+      <span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full capitalize shrink-0 {% if u.status == 'active' %}bg-green-100 text-green-700{% else %}bg-error-container text-error{% endif %}">{{ u.status }}</span>
+    </a>
+    {% empty %}
+    <p class="p-md font-body-sm text-body-sm text-on-surface-variant text-center">No recent users.</p>
+    {% endfor %}
+  </div>
+  <!-- Recent Portfolios -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+    <div class="p-md border-b border-outline-variant flex items-center justify-between">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary text-[18px]">work</span> New Portfolios
+      </h3>
+      <a href="{% url 'admin_portfolios' %}" class="font-label-sm text-label-sm text-primary hover:underline">View All</a>
+    </div>
+    {% for p in recent_portfolios %}
+    <a href="{% url 'admin_portfolio_detail' p.pk %}" class="flex items-center gap-sm p-sm border-b border-outline-variant/50 hover:bg-surface-container transition-colors">
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ p.title|first|upper }}</div>
+      <div class="flex-grow min-w-0">
+        <p class="font-label-md text-label-md text-on-surface truncate">{{ p.title }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">by {{ p.user.username }}</p>
+      </div>
+      <span class="font-label-sm text-label-sm px-xs py-0.5 rounded capitalize shrink-0 {% if p.status == 'public' %}bg-green-100 text-green-700{% elif p.status == 'private' %}bg-yellow-100 text-yellow-700{% else %}bg-surface-container text-on-surface-variant{% endif %}">{{ p.status }}</span>
+    </a>
+    {% empty %}
+    <p class="p-md font-body-sm text-body-sm text-on-surface-variant text-center">No recent portfolios.</p>
+    {% endfor %}
+  </div>
+  <!-- Recent Threads -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+    <div class="p-md border-b border-outline-variant flex items-center justify-between">
+      <h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary text-[18px]">forum</span> Recent Threads
+      </h3>
+      <a href="{% url 'forum_categories' %}" class="font-label-sm text-label-sm text-primary hover:underline">View All</a>
+    </div>
+    {% for t in recent_threads %}
+    <a href="{% url 'forum_thread_detail' t.category.slug t.slug %}" class="flex items-center gap-sm p-sm border-b border-outline-variant/50 hover:bg-surface-container transition-colors">
+      <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant font-bold text-body-sm shrink-0">{{ t.category.name|first|upper }}</div>
+      <div class="flex-grow min-w-0">
+        <p class="font-label-md text-label-md text-on-surface truncate">{{ t.title }}</p>
+        <p class="font-label-sm text-label-sm text-on-surface-variant">by {{ t.user.username }}</p>
+      </div>
+    </a>
+    {% empty %}
+    <p class="p-md font-body-sm text-body-sm text-on-surface-variant text-center">No recent threads.</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

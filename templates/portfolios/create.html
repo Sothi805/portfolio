@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Create Portfolio – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-3xl mx-auto px-margin-mobile py-xl">
+  <div class="mb-lg">
+    <h1 class="font-headline-lg text-headline-lg text-on-background">Create New Portfolio</h1>
+    <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Choose a template and give your portfolio a title to get started</p>
+  </div>
+
+  <form method="post" class="flex flex-col gap-xl">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
+      <label class="block font-headline-sm text-headline-sm text-on-surface mb-md">Portfolio Title</label>
+      <input type="text" name="title" required placeholder="e.g. John's Design Portfolio" class="w-full px-sm py-xs border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-body-md"/>
+    </div>
+
+    <!-- Templates -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
+      <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md">Choose a Template <span class="text-error font-label-sm text-label-sm">*</span></h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-md">
+        {% for template in templates %}
+        <label class="cursor-pointer">
+          <input type="radio" name="template_id" value="{{ template.id }}" class="sr-only peer" {% if forloop.first %}checked{% endif %}/>
+          <div class="border-2 border-outline-variant peer-checked:border-primary peer-checked:bg-primary-fixed rounded-xl p-md hover:border-primary transition-colors h-36 flex flex-col justify-between">
+            <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-white">dashboard_customize</span>
+            </div>
+            <div>
+              <h3 class="font-label-md text-label-md text-on-surface">{{ template.name }}</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">{{ template.description }}</p>
+            </div>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flex gap-sm">
+      <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-xl py-sm rounded-lg hover:bg-on-primary-fixed-variant hover:-translate-y-0.5 transition-all shadow-sm flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[18px]">rocket_launch</span> Create Portfolio
+      </button>
+      <a href="{% url 'portfolio_dashboard' %}" class="font-label-md text-label-md border border-outline-variant text-on-surface px-xl py-sm rounded-lg hover:bg-surface-container transition-colors">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

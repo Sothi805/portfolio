@@ -1,0 +1,146 @@
+{% extends "admin_dashboard/base_admin.html" %}
+{% block title %}{{ portfolio.title }} – Admin – ProPortfolio{% endblock %}
+
+{% block admin_content %}
+<!-- Breadcrumb -->
+<nav class="flex items-center gap-xs mb-lg font-label-sm text-label-sm text-on-surface-variant">
+  <a href="{% url 'admin_dashboard' %}" class="hover:text-primary transition-colors">Dashboard</a>
+  <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+  <a href="{% url 'admin_portfolios' %}" class="hover:text-primary transition-colors">Portfolios</a>
+  <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+  <span class="text-on-surface">{{ portfolio.title }}</span>
+</nav>
+
+<!-- Header -->
+<div class="flex flex-col md:flex-row md:items-start md:justify-between gap-md mb-xl">
+  <div>
+    <div class="flex items-center gap-sm flex-wrap">
+      <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-sm">{{ portfolio.title|first|upper }}</div>
+      <div>
+        <h1 class="font-headline-md text-headline-md text-on-background">{{ portfolio.title }}</h1>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">
+          by
+          <a href="{% url 'admin_user_detail' portfolio.user.pk %}" class="text-primary hover:underline">{{ portfolio.user.username }}</a>
+          {% if portfolio.template %}· {{ portfolio.template.name }}{% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-xs mt-sm flex-wrap">
+      <span class="font-label-sm text-label-sm px-xs py-0.5 rounded capitalize {% if portfolio.status == 'public' %}bg-green-100 text-green-700{% elif portfolio.status == 'private' %}bg-yellow-100 text-yellow-700{% else %}bg-surface-container text-on-surface-variant{% endif %}">{{ portfolio.status }}</span>
+      {% if portfolio.is_featured %}<span class="font-label-sm text-label-sm px-xs py-0.5 rounded bg-primary-fixed text-primary">Featured</span>{% endif %}
+      <span class="font-label-sm text-label-sm text-on-surface-variant">{{ portfolio.views_count }} views</span>
+      <span class="font-label-sm text-label-sm text-on-surface-variant">Created {{ portfolio.created_at|date:"M d, Y" }}</span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center gap-sm flex-wrap">
+    {% if portfolio.status == 'public' %}
+    <a href="{% url 'portfolio_detail' portfolio.slug %}" target="_blank" class="flex items-center gap-xs font-label-md text-label-md border border-outline-variant px-md py-xs rounded-lg hover:border-primary hover:text-primary transition-colors">
+      <span class="material-symbols-outlined text-[16px]">open_in_new</span> View Live
+    </a>
+    {% endif %}
+    <form method="post" action="{% url 'admin_portfolios' %}">
+      {% csrf_token %}
+      <input type="hidden" name="portfolio_id" value="{{ portfolio.pk }}"/>
+      <input type="hidden" name="action" value="{% if portfolio.is_featured %}unfeature{% else %}feature{% endif %}"/>
+      <button type="submit" class="font-label-md text-label-md border border-outline-variant px-md py-xs rounded-lg hover:border-primary hover:text-primary transition-colors">
+        {% if portfolio.is_featured %}Unfeature{% else %}Feature{% endif %}
+      </button>
+    </form>
+    <form method="post" action="{% url 'admin_portfolios' %}" onsubmit="return confirm('Delete this portfolio?')">
+      {% csrf_token %}
+      <input type="hidden" name="portfolio_id" value="{{ portfolio.pk }}"/>
+      <input type="hidden" name="action" value="delete"/>
+      <button type="submit" class="font-label-md text-label-md border border-error/50 text-error px-md py-xs rounded-lg hover:bg-error-container transition-colors">Delete</button>
+    </form>
+  </div>
+</div>
+
+<!-- Content sections -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-xl">
+  <!-- About / summary -->
+  <div class="md:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary text-[18px]">info</span> About
+    </h2>
+    {% with about=portfolio.get_about %}
+    {% if about %}
+    <p class="font-body-md text-body-md text-on-surface leading-relaxed">{{ about }}</p>
+    {% else %}
+    <p class="font-body-sm text-body-sm text-on-surface-variant italic">No about section provided.</p>
+    {% endif %}
+    {% endwith %}
+
+    {% with contact=portfolio.get_contact %}
+    {% if contact %}
+    <div class="mt-md pt-md border-t border-outline-variant">
+      <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">Contact Info</h3>
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-sm">
+        {% for key, val in contact.items %}
+        <div>
+          <dt class="font-label-sm text-label-sm text-on-surface-variant capitalize">{{ key }}</dt>
+          <dd class="font-body-sm text-body-sm text-on-surface">{{ val }}</dd>
+        </div>
+        {% endfor %}
+      </dl>
+    </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Skills -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary text-[18px]">build</span> Skills
+    </h2>
+    {% if skills %}
+    <div class="flex flex-wrap gap-xs">
+      {% for skill in skills %}
+      <span class="font-label-sm text-label-sm px-sm py-xs rounded-full border border-outline-variant text-on-surface bg-surface-container capitalize">
+        {{ skill.name }}
+        <span class="text-on-surface-variant ml-xs">{{ skill.proficiency }}</span>
+      </span>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="font-body-sm text-body-sm text-on-surface-variant italic">No skills listed.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Projects -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden mb-xl">
+  <div class="p-md border-b border-outline-variant flex items-center justify-between">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary text-[18px]">category</span> Projects
+    </h2>
+    <span class="font-label-sm text-label-sm text-on-surface-variant">{{ projects|length }} total</span>
+  </div>
+  {% if projects %}
+  <div class="divide-y divide-outline-variant/50">
+    {% for project in projects %}
+    <div class="flex items-start gap-md p-md hover:bg-surface-container transition-colors">
+      {% if project.image %}
+      <img src="{{ project.image.url }}" class="w-20 h-16 object-cover rounded-lg border border-outline-variant shrink-0" alt="{{ project.title }}"/>
+      {% else %}
+      <div class="w-20 h-16 rounded-lg bg-surface-container border border-outline-variant flex items-center justify-center text-on-surface-variant shrink-0">
+        <span class="material-symbols-outlined text-[24px]">image</span>
+      </div>
+      {% endif %}
+      <div class="flex-grow min-w-0">
+        <div class="flex items-center gap-sm">
+          <p class="font-label-md text-label-md text-on-surface">{{ project.title }}</p>
+          {% if project.url %}<a href="{{ project.url }}" target="_blank" rel="noopener noreferrer" class="font-label-sm text-label-sm text-primary hover:underline">↗ Link</a>{% endif %}
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs line-clamp-2">{{ project.description }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="p-md font-body-sm text-body-sm text-on-surface-variant text-center">No projects added yet.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

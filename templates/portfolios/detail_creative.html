@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}{{ portfolio.title }} – ProPortfolio{% endblock %}
+
+{% block extra_head %}
+<style>
+  .creative-template { background: #fafafa; }
+  .creative-hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f5576c 100%); background-size: 300% 300%; animation: gradientShift 12s ease infinite; }
+  @keyframes floatIn { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+  .float-in { animation: floatIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .float-in:nth-child(1){animation-delay:.1s} .float-in:nth-child(2){animation-delay:.2s} .float-in:nth-child(3){animation-delay:.3s} .float-in:nth-child(4){animation-delay:.4s}
+  @keyframes shimmerBadge { 0%,100%{box-shadow:0 0 0 0 rgba(118,75,162,0);} 50%{box-shadow:0 0 20px 4px rgba(118,75,162,0.2);} }
+  .creative-avatar { animation: shimmerBadge 3s ease-in-out infinite; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="creative-template min-h-screen">
+  <!-- Back -->
+  <div class="max-w-5xl mx-auto px-margin-mobile pt-md">
+    <a href="{% url 'portfolio_list' %}" class="inline-flex items-center gap-xs text-[#9ca3af] hover:text-[#764ba2] transition-colors text-sm">
+      <span class="material-symbols-outlined text-[16px]">arrow_back</span> Back to Portfolios
+    </a>
+  </div>
+
+  <!-- Hero -->
+  <div class="creative-hero relative overflow-hidden mt-sm">
+    <div class="absolute inset-0 opacity-[0.06]" style="background-image: radial-gradient(circle at 2px 2px, #fff 1.5px, transparent 0); background-size: 24px 24px;"></div>
+    <!-- Decorative shapes -->
+    <div class="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full"></div>
+    <div class="absolute -bottom-8 -left-8 w-48 h-48 bg-white/8 rounded-full"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-margin-mobile py-2xl">
+      <div class="flex flex-col md:flex-row items-center md:items-end gap-lg">
+        <!-- Avatar -->
+        <div class="shrink-0 creative-avatar">
+          {% if portfolio.user.avatar %}
+            <img src="{{ portfolio.user.avatar.url }}" class="w-28 h-28 rounded-[24px] object-cover border-4 border-white/40 shadow-2xl" alt="{{ portfolio.user.username }}"/>
+          {% else %}
+            <div class="w-28 h-28 rounded-[24px] bg-white/20 border-4 border-white/40 backdrop-blur-sm flex items-center justify-center shadow-2xl">
+              <span class="text-5xl font-bold text-white">{{ portfolio.user.username|first|upper }}</span>
+            </div>
+          {% endif %}
+        </div>
+        <div class="text-center md:text-left">
+          <h1 class="text-4xl md:text-5xl font-black text-white leading-tight mb-xs drop-shadow-lg">{{ portfolio.title }}</h1>
+          <p class="text-white/80 text-lg mb-md">by {{ portfolio.user.username }}</p>
+          <div class="flex flex-wrap gap-sm justify-center md:justify-start">
+            {% if portfolio.template %}
+            <span class="inline-flex items-center gap-xs bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-semibold px-sm py-1 rounded-full">
+              ✨ {{ portfolio.template.name }}
+            </span>
+            {% endif %}
+            <span class="inline-flex items-center gap-xs text-white/70 text-xs">
+              <span class="material-symbols-outlined text-[14px]">visibility</span> {{ portfolio.views_count }} views
+            </span>
+            {% if user == portfolio.user %}
+            <a href="{% url 'portfolio_edit' portfolio.slug %}" class="inline-flex items-center gap-xs bg-white/20 border border-white/30 text-white text-xs px-sm py-1 rounded-full hover:bg-white/30 transition-colors backdrop-blur-sm">
+              <span class="material-symbols-outlined text-[14px]">edit</span> Edit
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="max-w-5xl mx-auto px-margin-mobile py-xl">
+
+    <!-- About -->
+    {% if portfolio.get_about %}
+    <section class="float-in mb-xl">
+      <div class="bg-white rounded-[24px] border border-[#f0abfc20] p-lg shadow-sm" style="box-shadow: 0 4px 40px -8px rgba(118,75,162,0.1);">
+        <div class="flex items-center gap-sm mb-md">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
+            <span class="material-symbols-outlined text-white text-[16px]">person</span>
+          </div>
+          <h2 class="text-lg font-bold text-[#1a1a2e]">About Me</h2>
+        </div>
+        <p class="text-[#4b5563] leading-relaxed text-base whitespace-pre-wrap">{{ portfolio.get_about }}</p>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Skills – colorful chips -->
+    {% if portfolio.skills.all %}
+    <section class="float-in mb-xl">
+      <h2 class="text-2xl font-black text-[#1a1a2e] mb-md flex items-center gap-sm">
+        <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#f5576c] to-[#fa709a] flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-[16px]">psychology</span>
+        </span>
+        Skills & Expertise
+      </h2>
+      <div class="flex flex-wrap gap-sm">
+        {% for skill in portfolio.skills.all %}
+        {% with colors="from-[#667eea] to-[#764ba2] from-[#f093fb] to-[#f5576c] from-[#4facfe] to-[#00f2fe] from-[#43e97b] to-[#38f9d7] from-[#fa709a] to-[#fee140]" %}
+        <div class="creative-skill-chip px-md py-xs rounded-full font-semibold text-sm flex items-center gap-xs">
+          <span>{{ skill.name }}</span>
+          <span class="text-[10px] opacity-60 capitalize">{{ skill.proficiency }}</span>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Projects – large cards -->
+    {% if portfolio.projects.all %}
+    <section class="float-in mb-xl">
+      <h2 class="text-2xl font-black text-[#1a1a2e] mb-lg flex items-center gap-sm">
+        <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-[16px]">folder_open</span>
+        </span>
+        Featured Projects
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+        {% for project in portfolio.projects.all %}
+        <div class="creative-project-card bg-white shadow-sm group">
+          {% if project.image %}
+          <div class="h-52 overflow-hidden">
+            <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+          </div>
+          {% else %}
+          <div class="h-52 flex items-center justify-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <span class="text-6xl opacity-30">{{ project.title|first|upper }}</span>
+          </div>
+          {% endif %}
+          <div class="p-lg">
+            <h3 class="text-lg font-black text-[#1a1a2e] mb-xs group-hover:text-[#764ba2] transition-colors">{{ project.title }}</h3>
+            <p class="text-[#6b7280] text-sm leading-relaxed line-clamp-3">{{ project.description }}</p>
+            {% if project.url %}
+            <a href="{{ project.url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-xs mt-md text-sm font-semibold text-[#764ba2] hover:text-[#f5576c] transition-colors">
+              View Project <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Testimonials -->
+    {% if portfolio.testimonials.all %}
+    <section class="float-in mb-xl">
+      <h2 class="text-2xl font-black text-[#1a1a2e] mb-lg flex items-center gap-sm">
+        <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#fa709a] to-[#fee140] flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-[16px]">format_quote</span>
+        </span>
+        What People Say
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+        {% for t in portfolio.testimonials.all %}
+        <div class="bg-white rounded-[20px] p-lg border border-[#f0f0f0] relative overflow-hidden" style="box-shadow: 0 4px 20px -4px rgba(118,75,162,0.08);">
+          <div class="absolute top-md right-md text-[80px] font-serif text-[#f3e8ff] leading-none pointer-events-none select-none">"</div>
+          <div class="flex mb-sm">{% for i in "12345" %}{% if forloop.counter <= t.rating %}<span class="text-[#fbbf24]">★</span>{% else %}<span class="text-[#e5e7eb]">★</span>{% endif %}{% endfor %}</div>
+          <p class="text-[#374151] leading-relaxed italic relative z-10">{{ t.content }}</p>
+          <p class="text-[#764ba2] font-bold text-sm mt-md">{{ t.author_name }}</p>
+          {% if t.author_role %}<p class="text-[#9ca3af] text-xs">{{ t.author_role }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Experience -->
+    {% if portfolio.experiences.all %}
+    <section class="float-in mb-xl">
+      <h2 class="text-2xl font-black text-[#1a1a2e] mb-lg flex items-center gap-sm">
+        <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-[16px]">work</span>
+        </span>
+        Work Experience
+      </h2>
+      <div class="flex flex-col gap-md">
+        {% for exp in portfolio.experiences.all %}
+        <div class="bg-white rounded-[20px] p-lg border border-[#f0f0f0]" style="box-shadow: 0 4px 20px -4px rgba(118,75,162,0.08);">
+          <div class="flex flex-wrap items-start justify-between gap-sm mb-xs">
+            <div>
+              <h3 class="text-lg font-black text-[#1a1a2e]">{{ exp.role }}</h3>
+              <p class="text-[#764ba2] font-semibold text-sm">{{ exp.company }}</p>
+            </div>
+            <span class="text-xs font-semibold text-[#9ca3af] bg-[#f9fafb] border border-[#e5e7eb] px-sm py-1 rounded-full">{{ exp.period }}</span>
+          </div>
+          {% if exp.description %}<p class="text-[#6b7280] text-sm leading-relaxed mt-sm">{{ exp.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Education -->
+    {% if portfolio.educations.all %}
+    <section class="float-in mb-xl">
+      <h2 class="text-2xl font-black text-[#1a1a2e] mb-lg flex items-center gap-sm">
+        <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4facfe] to-[#00f2fe] flex items-center justify-center">
+          <span class="material-symbols-outlined text-white text-[16px]">school</span>
+        </span>
+        Education
+      </h2>
+      <div class="flex flex-col gap-md">
+        {% for edu in portfolio.educations.all %}
+        <div class="bg-white rounded-[20px] p-lg border border-[#f0f0f0]" style="box-shadow: 0 4px 20px -4px rgba(118,75,162,0.08);">
+          <div class="flex flex-wrap items-start justify-between gap-sm mb-xs">
+            <div>
+              <h3 class="text-lg font-black text-[#1a1a2e]">{{ edu.institution }}</h3>
+              {% if edu.degree %}<p class="text-[#764ba2] font-semibold text-sm">{{ edu.degree }}{% if edu.field_of_study %} – {{ edu.field_of_study }}{% endif %}</p>{% endif %}
+            </div>
+            <span class="text-xs font-semibold text-[#9ca3af] bg-[#f9fafb] border border-[#e5e7eb] px-sm py-1 rounded-full">{{ edu.period }}</span>
+          </div>
+          {% if edu.description %}<p class="text-[#6b7280] text-sm leading-relaxed mt-sm">{{ edu.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Contact -->
+    {% with contact=portfolio.get_contact %}
+    {% if contact.email or contact.phone or contact.location %}
+    <section class="float-in">
+      <div class="creative-hero rounded-[24px] p-xl text-center relative overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.06]" style="background-image:radial-gradient(circle at 2px 2px,#fff 1px,transparent 0);background-size:20px 20px;"></div>
+        <div class="relative z-10">
+          <h2 class="text-3xl font-black text-white mb-xs">Let's Connect!</h2>
+          <p class="text-white/70 mb-lg">I'd love to hear from you</p>
+          <div class="flex flex-wrap justify-center gap-md">
+            {% if contact.email %}
+            <a href="mailto:{{ contact.email }}" class="inline-flex items-center gap-sm bg-white text-[#764ba2] font-semibold px-lg py-sm rounded-full shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all">
+              <span class="material-symbols-outlined text-[18px]">mail</span> {{ contact.email }}
+            </a>
+            {% endif %}
+            {% if contact.phone %}
+            <span class="inline-flex items-center gap-sm bg-white/20 text-white border border-white/30 px-lg py-sm rounded-full backdrop-blur-sm">
+              <span class="material-symbols-outlined text-[18px]">phone</span> {{ contact.phone }}
+            </span>
+            {% endif %}
+            {% if contact.location %}
+            <span class="inline-flex items-center gap-sm bg-white/20 text-white border border-white/30 px-lg py-sm rounded-full backdrop-blur-sm">
+              <span class="material-symbols-outlined text-[18px]">location_on</span> {{ contact.location }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
+    {% endif %}
+    {% endwith %}
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,365 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}ProPortfolio{% endblock %}</title>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="{% static 'css/main.css' %}"/>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#004ac6",
+            "on-primary": "#ffffff",
+            "primary-container": "#2563eb",
+            "primary-fixed": "#dbe1ff",
+            "on-primary-fixed": "#00174b",
+            "on-primary-fixed-variant": "#003ea8",
+            "inverse-primary": "#b4c5ff",
+            "secondary": "#565e74",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#dae2fd",
+            "on-secondary-container": "#5c647a",
+            "tertiary": "#525657",
+            "on-tertiary": "#ffffff",
+            "tertiary-container": "#6b6e70",
+            "on-tertiary-container": "#eff1f3",
+            "error": "#ba1a1a",
+            "on-error": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "background": "#f8f9ff",
+            "on-background": "#0b1c30",
+            "surface": "#f8f9ff",
+            "on-surface": "#0b1c30",
+            "surface-variant": "#d3e4fe",
+            "on-surface-variant": "#434655",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container": "#e5eeff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe",
+            "surface-dim": "#cbdbf5",
+            "surface-bright": "#f8f9ff",
+            "surface-tint": "#0053db",
+            "inverse-surface": "#213145",
+            "inverse-on-surface": "#eaf1ff",
+            "outline": "#737686",
+            "outline-variant": "#c3c6d7",
+          },
+          spacing: {
+            "gutter": "24px", "base": "4px", "sm": "16px",
+            "margin-desktop": "40px", "xs": "8px", "lg": "32px",
+            "xxl": "80px", "md": "24px", "xl": "48px", "margin-mobile": "16px"
+          },
+          fontFamily: {
+            "display": ["Inter"], "headline-lg": ["Inter"], "headline-md": ["Inter"],
+            "headline-sm": ["Inter"], "body-lg": ["Inter"], "body-md": ["Inter"],
+            "body-sm": ["Inter"], "label-md": ["Inter"], "label-sm": ["Inter"]
+          },
+          fontSize: {
+            "display": ["48px", {"lineHeight":"1.1","letterSpacing":"-0.02em","fontWeight":"700"}],
+            "headline-lg": ["32px", {"lineHeight":"1.2","letterSpacing":"-0.01em","fontWeight":"600"}],
+            "headline-lg-mobile": ["24px", {"lineHeight":"1.2","fontWeight":"600"}],
+            "headline-md": ["24px", {"lineHeight":"1.3","fontWeight":"600"}],
+            "headline-sm": ["18px", {"lineHeight":"1.4","fontWeight":"600"}],
+            "body-lg": ["18px", {"lineHeight":"1.6","fontWeight":"400"}],
+            "body-md": ["16px", {"lineHeight":"1.5","fontWeight":"400"}],
+            "body-sm": ["14px", {"lineHeight":"1.5","fontWeight":"400"}],
+            "label-md": ["14px", {"lineHeight":"1","letterSpacing":"0.05em","fontWeight":"600"}],
+            "label-sm": ["12px", {"lineHeight":"1","fontWeight":"500"}]
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .icon-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased min-h-screen flex flex-col">
+
+<!-- Admin preview mode banner -->
+{% if request.preview_mode %}
+<div class="bg-amber-500 text-white px-4 py-2 flex items-center justify-between gap-2 text-sm sticky top-0 z-[9999] shadow">
+  <div class="flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">visibility</span>
+    <span><strong>Admin Preview:</strong> connected as <strong>{{ user.username }}</strong> — write operations are blocked</span>
+  </div>
+  <form method="post" action="{% url 'admin_disconnect' %}">
+    {% csrf_token %}
+    <button type="submit" class="bg-white text-amber-700 px-3 py-0.5 rounded text-xs font-bold hover:bg-amber-50 transition-colors">Disconnect</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Top Navigation -->
+<header class="bg-surface border-b border-outline-variant sticky top-0 z-50 shadow-sm">
+  <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 max-w-[1440px] mx-auto">
+    <!-- Logo -->
+    <a href="{% url 'home' %}" class="flex items-center gap-xs scale-95 hover:scale-100 transition-transform duration-150 cursor-pointer">
+      <span class="material-symbols-outlined text-primary icon-fill">work</span>
+      <span class="font-headline-md text-headline-md font-bold text-primary">ProPortfolio</span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex h-full items-center gap-lg">
+      <a href="{% url 'home' %}" class="h-full flex items-center {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'portfolio_list' %}text-primary font-bold border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors py-1">Discover</a>
+      <a href="{% url 'forum_categories' %}" class="h-full flex items-center {% if 'forum' in request.resolver_match.url_name and request.resolver_match.url_name != 'forum_leaderboard' %}text-primary font-bold border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors py-1">Community</a>
+      <a href="{% url 'forum_leaderboard' %}" class="h-full flex items-center {% if request.resolver_match.url_name == 'forum_leaderboard' %}text-primary font-bold border-b-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %} transition-colors py-1">Leaderboards</a>
+    </nav>
+
+    <!-- Right Actions -->
+    <div class="flex items-center gap-sm">
+      <!-- Search (desktop) -->
+      <div class="hidden md:flex items-center bg-surface-container rounded-full px-sm py-xs border border-transparent focus-within:border-primary transition-colors w-56">
+        <span class="material-symbols-outlined text-outline mr-xs text-[18px]">search</span>
+        <form method="get" action="{% url 'portfolio_list' %}" class="w-full">
+          <input name="search" type="text" placeholder="Search portfolios..." class="bg-transparent border-none outline-none text-body-sm text-on-surface w-full placeholder:text-outline ring-0 p-0 focus:ring-0"/>
+        </form>
+      </div>
+
+      {% if user.is_authenticated %}
+        <!-- Notifications Bell -->
+        <div class="relative" id="notif-btn">
+          <button onclick="toggleNotifDropdown()" class="relative p-xs rounded-full hover:bg-surface-container transition-colors">
+            <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+            {% if unread_count %}
+            <span class="absolute top-0 right-0 w-4 h-4 bg-error text-on-error text-[10px] rounded-full flex items-center justify-center font-bold">{{ unread_count }}</span>
+            {% endif %}
+          </button>
+          <!-- Notification Dropdown -->
+          <div id="notif-dropdown" class="hidden absolute right-0 top-12 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-50">
+            {% include "notifications/notifications_dropdown.html" %}
+          </div>
+        </div>
+        <!-- User Menu -->
+        <div class="relative" id="user-menu-btn">
+          <button onclick="toggleUserMenu()" class="flex items-center gap-xs p-xs rounded-full hover:bg-surface-container transition-colors">
+            {% if user.avatar %}
+              <img src="{{ user.avatar.url }}" class="w-8 h-8 rounded-full object-cover" alt="{{ user.username }}"/>
+            {% else %}
+              <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                <span class="text-white font-bold text-body-sm">{{ user.username|first|upper }}</span>
+              </div>
+            {% endif %}
+            <span class="hidden md:block font-label-md text-label-md text-on-surface">{{ user.username }}</span>
+            <span class="material-symbols-outlined text-outline text-[18px]">expand_more</span>
+          </button>
+          <div id="user-menu" class="hidden absolute right-0 top-12 w-48 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-50 overflow-hidden">
+            <a href="{% url 'portfolio_dashboard' %}" class="flex items-center gap-sm px-sm py-xs text-body-sm text-on-surface hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined text-[18px]">dashboard</span> My Dashboard
+            </a>
+            <a href="{% url 'portfolio_create' %}" class="flex items-center gap-sm px-sm py-xs text-body-sm text-on-surface hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined text-[18px]">add_circle</span> New Portfolio
+            </a>
+            <a href="{% url 'profile' %}" class="flex items-center gap-sm px-sm py-xs text-body-sm text-on-surface hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined text-[18px]">person</span> Profile
+            </a>
+            {% if user.is_staff %}
+            <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-sm px-sm py-xs text-body-sm text-on-surface hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Admin
+            </a>
+            {% endif %}
+            <div class="border-t border-outline-variant my-1"></div>
+            {% if request.preview_mode %}
+            <form method="post" action="{% url 'admin_disconnect' %}">
+              {% csrf_token %}
+              <button type="submit" class="w-full flex items-center gap-sm px-sm py-xs text-body-sm text-amber-700 hover:bg-amber-50 transition-colors">
+                <span class="material-symbols-outlined text-[18px]">link_off</span> Disconnect
+              </button>
+            </form>
+            {% else %}
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="w-full flex items-center gap-sm px-sm py-xs text-body-sm text-error hover:bg-error-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">logout</span> Sign Out
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      {% else %}
+        <a href="{% url 'login' %}" class="font-label-md text-label-md text-primary px-sm py-xs hover:bg-surface-container-high rounded-full transition-colors hidden md:block">Sign In</a>
+        <a href="{% url 'register' %}" class="font-label-md text-label-md bg-primary text-on-primary px-sm py-xs rounded-full hover:bg-on-primary-fixed-variant transition-colors shadow-sm">Join Now</a>
+      {% endif %}
+
+      <!-- Mobile menu button -->
+      <button onclick="toggleMobileMenu()" class="md:hidden p-xs rounded-full hover:bg-surface-container transition-colors">
+        <span class="material-symbols-outlined text-on-surface-variant">menu</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-outline-variant bg-surface px-margin-mobile py-sm flex flex-col gap-xs">
+    <a href="{% url 'home' %}" class="py-xs text-on-surface hover:text-primary transition-colors">Discover</a>
+    <a href="{% url 'forum_categories' %}" class="py-xs text-on-surface hover:text-primary transition-colors">Community</a>
+    <a href="{% url 'forum_leaderboard' %}" class="py-xs text-on-surface hover:text-primary transition-colors">Leaderboards</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'portfolio_dashboard' %}" class="py-xs text-on-surface hover:text-primary transition-colors">My Dashboard</a>
+      <a href="{% url 'profile' %}" class="py-xs text-on-surface hover:text-primary transition-colors">Profile</a>
+      {% if user.is_staff %}<a href="{% url 'admin_dashboard' %}" class="py-xs text-on-surface hover:text-primary transition-colors">Admin</a>{% endif %}
+      {% if request.preview_mode %}
+      <form method="post" action="{% url 'admin_disconnect' %}">{% csrf_token %}<button class="py-xs text-amber-700 text-left w-full flex items-center gap-xs"><span class="material-symbols-outlined text-[16px]">link_off</span> Disconnect</button></form>
+      {% else %}
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="py-xs text-error text-left w-full">Sign Out</button></form>
+      {% endif %}
+    {% else %}
+      <a href="{% url 'login' %}" class="py-xs text-primary">Sign In</a>
+      <a href="{% url 'register' %}" class="py-xs text-primary font-bold">Join Now</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- Django Messages -->
+{% if messages %}
+<div class="fixed top-20 right-4 z-50 flex flex-col gap-sm max-w-sm w-full" id="messages-container">
+  {% for message in messages %}
+  <div class="flex items-start gap-sm p-sm rounded-xl shadow-lg border
+    {% if message.tags == 'success' %}bg-surface-container-lowest border-primary/20 text-on-surface
+    {% elif message.tags == 'error' %}bg-error-container border-error/20 text-on-error-container
+    {% elif message.tags == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800
+    {% else %}bg-surface-container border-outline-variant text-on-surface{% endif %}
+    message-item cursor-pointer" onclick="this.remove()">
+    <span class="material-symbols-outlined text-[18px] mt-0.5 shrink-0
+      {% if message.tags == 'success' %}text-primary{% elif message.tags == 'error' %}text-error{% else %}text-on-surface-variant{% endif %}">
+      {% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% else %}info{% endif %}
+    </span>
+    <p class="font-body-sm text-body-sm">{{ message }}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Main Content -->
+<main class="flex-grow">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="bg-surface-container-low border-t border-outline-variant mt-auto">
+  <div class="w-full px-margin-mobile md:px-margin-desktop py-xl max-w-[1440px] mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-lg mb-lg">
+      <!-- Brand -->
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-xs mb-sm">
+          <span class="material-symbols-outlined text-primary icon-fill">work</span>
+          <span class="font-headline-sm text-headline-sm font-bold text-primary">ProPortfolio</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant max-w-xs leading-relaxed">The professional portfolio platform built for creators and industry leaders. Showcase your best work, connect with peers.</p>
+      </div>
+      <!-- Platform links -->
+      <div>
+        <h4 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-sm">Platform</h4>
+        <div class="flex flex-col gap-xs">
+          <a href="{% url 'portfolio_list' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Discover Portfolios</a>
+          <a href="{% url 'forum_categories' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Community Forum</a>
+          <a href="{% url 'forum_leaderboard' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Leaderboard</a>
+          {% if not user.is_authenticated %}
+          <a href="{% url 'register' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Join for Free</a>
+          {% endif %}
+        </div>
+      </div>
+      <!-- Account links -->
+      <div>
+        <h4 class="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-sm">Account</h4>
+        <div class="flex flex-col gap-xs">
+          {% if user.is_authenticated %}
+          <a href="{% url 'portfolio_dashboard' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">My Dashboard</a>
+          <a href="{% url 'portfolio_create' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Create Portfolio</a>
+          <a href="{% url 'profile' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Edit Profile</a>
+          {% else %}
+          <a href="{% url 'login' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Sign In</a>
+          <a href="{% url 'register' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Create Account</a>
+          {% endif %}
+          {% if user.is_staff %}<a href="{% url 'admin_dashboard' %}" class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors">Admin Panel</a>{% endif %}
+        </div>
+      </div>
+    </div>
+    <!-- Bottom bar -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-sm pt-md border-t border-outline-variant">
+      <p class="font-label-sm text-label-sm text-on-surface-variant opacity-80">&copy; 2026 ProPortfolio Platform. All rights reserved.</p>
+      <div class="flex items-center gap-sm">
+        <span class="font-label-sm text-label-sm text-on-surface-variant opacity-60">Built with</span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant opacity-80 flex items-center gap-xs">
+          <span class="material-symbols-outlined text-primary text-[14px] icon-fill">favorite</span> Django &amp; Tailwind
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleMobileMenu() {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+  }
+  function toggleNotifDropdown() {
+    document.getElementById('notif-dropdown').classList.toggle('hidden');
+    document.getElementById('user-menu').classList.add('hidden');
+  }
+  function toggleUserMenu() {
+    document.getElementById('user-menu').classList.toggle('hidden');
+    document.getElementById('notif-dropdown')?.classList.add('hidden');
+  }
+  // Close dropdowns on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#notif-btn')) document.getElementById('notif-dropdown')?.classList.add('hidden');
+    if (!e.target.closest('#user-menu-btn')) document.getElementById('user-menu')?.classList.add('hidden');
+  });
+  // Auto-dismiss messages
+  setTimeout(() => {
+    document.querySelectorAll('.message-item').forEach(el => el.style.opacity = '0');
+    setTimeout(() => document.querySelectorAll('.message-item').forEach(el => el.remove()), 500);
+  }, 4000);
+</script>
+
+{% if user.is_authenticated %}
+<script>
+  // WebSocket for real-time notifications
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const notifSocket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/notifications/`);
+  notifSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    if (data.type === 'notification') {
+      showNotificationToast(data.title, data.message);
+    }
+  };
+  function showNotificationToast(title, message) {
+    const container = document.getElementById('messages-container') || (() => {
+      const c = document.createElement('div');
+      c.id = 'messages-container';
+      c.className = 'fixed top-20 right-4 z-50 flex flex-col gap-sm max-w-sm w-full';
+      document.body.appendChild(c);
+      return c;
+    })();
+    const toast = document.createElement('div');
+    toast.className = 'flex items-start gap-sm p-sm rounded-xl shadow-lg border bg-surface-container-lowest border-primary/20 text-on-surface message-item cursor-pointer';
+    toast.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px] mt-0.5">notifications</span><div><p class="font-label-md text-label-md">${title}</p><p class="font-body-sm text-body-sm text-on-surface-variant">${message}</p></div>`;
+    toast.onclick = () => toast.remove();
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 5000);
+  }
+</script>
+{% endif %}
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

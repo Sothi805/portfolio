@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ portfolio.title }} – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto px-margin-mobile py-xl">
+  <!-- Back -->
+  <a href="{% url 'portfolio_list' %}" class="flex items-center gap-xs text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-lg">
+    <span class="material-symbols-outlined text-[18px]">arrow_back</span> Back to Portfolios
+  </a>
+
+  <!-- Header Card with cover banner -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm mb-lg overflow-hidden">
+    <!-- Cover Banner -->
+    <div class="h-32 md:h-44 relative overflow-hidden">
+      <div class="hero-gradient absolute inset-0"></div>
+      <div class="absolute inset-0 opacity-[0.08]" style="background-image: radial-gradient(circle at 2px 2px, #fff 1.5px, transparent 0); background-size: 24px 24px;"></div>
+      <!-- Big initial letter decoration -->
+      <span class="absolute right-lg bottom-0 font-display text-[120px] font-bold text-white/10 leading-none select-none">{{ portfolio.user.username|first|upper }}</span>
+      {% if user == portfolio.user %}
+      <a href="{% url 'portfolio_edit' portfolio.slug %}" class="absolute top-sm right-sm font-label-sm text-label-sm bg-white/20 text-white border border-white/30 px-sm py-xs rounded-full hover:bg-white/30 transition-colors backdrop-blur-sm flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[16px]">edit</span> Edit
+      </a>
+      {% endif %}
+    </div>
+    <!-- Author info (overlapping the banner) -->
+    <div class="px-lg pb-lg -mt-10 relative">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+        <div class="flex items-end gap-md">
+          {% if portfolio.user.avatar %}
+            <img src="{{ portfolio.user.avatar.url }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-surface-container-lowest shadow-md shrink-0" alt="{{ portfolio.user.username }}"/>
+          {% else %}
+            <div class="w-20 h-20 rounded-2xl bg-primary border-4 border-surface-container-lowest shadow-md flex items-center justify-center text-3xl font-bold text-white shrink-0">{{ portfolio.user.username|first|upper }}</div>
+          {% endif %}
+          <div class="pb-xs">
+            <h1 class="font-headline-lg text-headline-lg text-on-background leading-tight">{{ portfolio.title }}</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant">by {{ portfolio.user.username }}</p>
+            <div class="flex items-center gap-sm mt-xs flex-wrap">
+              {% if portfolio.template %}
+              <span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded">{{ portfolio.template.name }}</span>
+              {% endif %}
+              <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">visibility</span> {{ portfolio.views_count }} views
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Section -->
+  {% if portfolio.get_about %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm mb-lg">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">person</span> About
+    </h2>
+    <p class="font-body-md text-body-md text-on-surface whitespace-pre-wrap">{{ portfolio.get_about }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Projects -->
+  {% if portfolio.projects.all %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm mb-lg">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">folder_open</span> Projects
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+      {% for project in portfolio.projects.all %}
+      <div class="border border-outline-variant rounded-lg overflow-hidden hover:border-primary transition-colors">
+        {% if project.image %}
+        <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-36 object-cover"/>
+        {% else %}
+        <div class="w-full h-36 bg-surface-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-[48px] text-outline">image</span>
+        </div>
+        {% endif %}
+        <div class="p-sm">
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">{{ project.title }}</h3>
+          <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs line-clamp-2">{{ project.description }}</p>
+          {% if project.url %}
+          <a href="{{ project.url }}" target="_blank" rel="noopener" class="flex items-center gap-xs text-primary font-label-sm text-label-sm mt-sm hover:underline">
+            <span class="material-symbols-outlined text-[14px]">open_in_new</span> View Project
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Skills -->
+  {% if portfolio.skills.all %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm mb-lg">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">psychology</span> Skills
+    </h2>
+    <div class="flex flex-wrap gap-sm">
+      {% for skill in portfolio.skills.all %}
+      <div class="flex items-center gap-xs px-sm py-xs rounded-full border border-outline-variant bg-surface-container">
+        <span class="font-label-md text-label-md text-on-surface">{{ skill.name }}</span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-xs py-0.5 rounded-full capitalize">{{ skill.proficiency }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Experience -->
+  {% if portfolio.experiences.all %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm mb-lg">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">work</span> Work Experience
+    </h2>
+    <div class="flex flex-col gap-md">
+      {% for exp in portfolio.experiences.all %}
+      <div class="flex gap-md">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-xs">
+          <span class="material-symbols-outlined text-primary text-[18px]">business</span>
+        </div>
+        <div class="flex-grow border-b border-outline-variant pb-md last:border-0 last:pb-0">
+          <div class="flex flex-wrap items-center gap-sm justify-between">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">{{ exp.role }}</h3>
+            <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-xs py-0.5 rounded">{{ exp.period }}</span>
+          </div>
+          <p class="font-body-sm text-body-sm text-primary mt-xs">{{ exp.company }}</p>
+          {% if exp.description %}<p class="font-body-md text-body-md text-on-surface-variant mt-xs">{{ exp.description }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Education -->
+  {% if portfolio.educations.all %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm mb-lg">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">school</span> Education
+    </h2>
+    <div class="flex flex-col gap-md">
+      {% for edu in portfolio.educations.all %}
+      <div class="flex gap-md">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-xs">
+          <span class="material-symbols-outlined text-primary text-[18px]">school</span>
+        </div>
+        <div class="flex-grow border-b border-outline-variant pb-md last:border-0 last:pb-0">
+          <div class="flex flex-wrap items-center gap-sm justify-between">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">{{ edu.institution }}</h3>
+            <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-xs py-0.5 rounded">{{ edu.period }}</span>
+          </div>
+          {% if edu.degree %}<p class="font-body-sm text-body-sm text-primary mt-xs">{{ edu.degree }}{% if edu.field_of_study %} – {{ edu.field_of_study }}{% endif %}</p>{% endif %}
+          {% if edu.description %}<p class="font-body-md text-body-md text-on-surface-variant mt-xs">{{ edu.description }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Testimonials -->
+  {% if portfolio.testimonials.all %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm mb-lg">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">format_quote</span> Testimonials
+    </h2>
+    <div class="flex flex-col gap-md">
+      {% for testimonial in portfolio.testimonials.all %}
+      <div class="border-l-4 border-primary pl-md py-xs">
+        <div class="flex mb-xs">{% for i in "12345" %}{% if forloop.counter <= testimonial.rating %}<span class="material-symbols-outlined text-primary text-[16px] icon-fill">star</span>{% else %}<span class="material-symbols-outlined text-outline text-[16px]">star</span>{% endif %}{% endfor %}</div>
+        <p class="font-body-md text-body-md text-on-surface italic">{{ testimonial.content }}</p>
+        <p class="font-label-md text-label-md text-on-surface mt-sm">— {{ testimonial.author_name }}{% if testimonial.author_role %}, <span class="font-label-sm text-on-surface-variant">{{ testimonial.author_role }}</span>{% endif %}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Contact -->
+  {% with contact=portfolio.get_contact %}
+  {% if contact.email or contact.phone or contact.location %}
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">contact_mail</span> Contact
+    </h2>
+    <div class="flex flex-wrap gap-md">
+      {% if contact.email %}<a href="mailto:{{ contact.email }}" class="flex items-center gap-xs text-primary hover:underline"><span class="material-symbols-outlined text-[18px]">mail</span>{{ contact.email }}</a>{% endif %}
+      {% if contact.phone %}<span class="flex items-center gap-xs text-on-surface"><span class="material-symbols-outlined text-[18px] text-primary">phone</span>{{ contact.phone }}</span>{% endif %}
+      {% if contact.location %}<span class="flex items-center gap-xs text-on-surface"><span class="material-symbols-outlined text-[18px] text-primary">location_on</span>{{ contact.location }}</span>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% endwith %}
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-xl">
+  <!-- Header -->
+  <div class="mb-xl">
+    <div class="flex items-center gap-sm mb-xs">
+      <span class="material-symbols-outlined text-primary text-[32px] icon-fill">emoji_events</span>
+      <h1 class="font-headline-lg text-headline-lg text-on-background">Community Leaderboard</h1>
+    </div>
+    <p class="font-body-md text-body-md text-on-surface-variant">Top contributors in the ProPortfolio community</p>
+  </div>
+
+  <!-- Podium for top 3 -->
+  {% if top_users_points %}
+  <div class="flex items-end justify-center gap-sm mb-xl">
+    <!-- 2nd place -->
+    {% if top_users_points|length >= 2 %}
+    <div class="flex flex-col items-center gap-sm">
+      {% if top_users_points.1.user.avatar %}
+        <img src="{{ top_users_points.1.user.avatar.url }}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-300 shadow-md" alt="{{ top_users_points.1.user.username }}"/>
+      {% else %}
+        <div class="w-14 h-14 rounded-full bg-surface-container-high border-2 border-gray-300 flex items-center justify-center text-2xl font-bold text-on-surface shadow-md">{{ top_users_points.1.user.username|first|upper }}</div>
+      {% endif %}
+      <p class="font-label-md text-label-md text-on-surface">{{ top_users_points.1.user.username }}</p>
+      <p class="font-body-sm text-body-sm text-on-surface-variant">{{ top_users_points.1.total_points }} pts</p>
+      <div class="podium-2 border rounded-t-xl w-24 h-20 flex items-center justify-center">
+        <span class="font-display text-[32px] font-bold text-slate-600">2</span>
+      </div>
+    </div>
+    {% endif %}
+    <!-- 1st place -->
+    <div class="flex flex-col items-center gap-sm -mt-8">
+      <span class="material-symbols-outlined text-amber-600 text-[32px] icon-fill">emoji_events</span>
+      {% if top_users_points.0.user.avatar %}
+        <img src="{{ top_users_points.0.user.avatar.url }}" class="w-20 h-20 rounded-full object-cover border-4 border-yellow-400 shadow-lg" alt="{{ top_users_points.0.user.username }}"/>
+      {% else %}
+        <div class="w-20 h-20 rounded-full bg-primary border-4 border-yellow-400 flex items-center justify-center text-3xl font-bold text-white shadow-lg">{{ top_users_points.0.user.username|first|upper }}</div>
+      {% endif %}
+      <p class="font-headline-sm text-headline-sm text-on-surface">{{ top_users_points.0.user.username }}</p>
+      <p class="font-body-sm text-body-sm text-primary font-bold">{{ top_users_points.0.total_points }} pts</p>
+      <div class="podium-1 border rounded-t-xl w-28 h-28 flex items-center justify-center">
+        <span class="font-display text-[48px] font-bold text-amber-800">1</span>
+      </div>
+    </div>
+    <!-- 3rd place -->
+    {% if top_users_points|length >= 3 %}
+    <div class="flex flex-col items-center gap-sm">
+      {% if top_users_points.2.user.avatar %}
+        <img src="{{ top_users_points.2.user.avatar.url }}" class="w-14 h-14 rounded-full object-cover border-2 border-orange-400 shadow-md" alt="{{ top_users_points.2.user.username }}"/>
+      {% else %}
+        <div class="w-14 h-14 rounded-full bg-orange-100 border-2 border-orange-400 flex items-center justify-center text-2xl font-bold text-orange-600 shadow-md">{{ top_users_points.2.user.username|first|upper }}</div>
+      {% endif %}
+      <p class="font-label-md text-label-md text-on-surface">{{ top_users_points.2.user.username }}</p>
+      <p class="font-body-sm text-body-sm text-on-surface-variant">{{ top_users_points.2.total_points }} pts</p>
+      <div class="podium-3 border rounded-t-xl w-24 h-14 flex items-center justify-center">
+        <span class="font-display text-[28px] font-bold text-orange-800">3</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+    <!-- Top by Points -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+      <div class="p-md border-b border-outline-variant flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary icon-fill">emoji_events</span>
+        <h2 class="font-headline-sm text-headline-sm text-on-surface">Top by Points</h2>
+      </div>
+      <div class="flex flex-col">
+        {% for up in top_users_points %}
+        <div class="flex items-center gap-md px-md py-sm border-b border-outline-variant/50 hover:bg-surface-container transition-colors {% if forloop.counter <= 3 %}bg-surface-container-low{% endif %}">
+          <div class="w-8 flex items-center justify-center">
+            {% if forloop.counter == 1 %}
+            <span class="material-symbols-outlined text-amber-600 icon-fill text-[24px]">emoji_events</span>
+            {% elif forloop.counter == 2 %}
+            <span class="material-symbols-outlined text-slate-500 icon-fill text-[20px]">emoji_events</span>
+            {% elif forloop.counter == 3 %}
+            <span class="material-symbols-outlined text-amber-600 icon-fill text-[18px]">emoji_events</span>
+            {% else %}
+            <span class="font-label-md text-label-md text-on-surface-variant">{{ forloop.counter }}</span>
+            {% endif %}
+          </div>
+          {% if up.user.avatar %}
+            <img src="{{ up.user.avatar.url }}" class="w-10 h-10 rounded-full object-cover shrink-0" alt="{{ up.user.username }}"/>
+          {% else %}
+            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ up.user.username|first|upper }}</div>
+          {% endif %}
+          <div class="flex-grow min-w-0">
+            <p class="font-label-md text-label-md text-on-surface truncate">{{ up.user.username }}</p>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">{{ up.user.badges.count }} badges</p>
+          </div>
+          <span class="font-headline-sm text-headline-sm text-primary font-bold shrink-0">{{ up.total_points }}<span class="font-label-sm text-label-sm text-on-surface-variant ml-xs">pts</span></span>
+        </div>
+        {% empty %}
+        <div class="p-xl text-center text-on-surface-variant font-body-sm text-body-sm">No data yet. Start participating!</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Top by Badges -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+      <div class="p-md border-b border-outline-variant flex items-center gap-xs">
+        <span class="material-symbols-outlined text-primary icon-fill">military_tech</span>
+        <h2 class="font-headline-sm text-headline-sm text-on-surface">Top by Badges</h2>
+      </div>
+      <div class="flex flex-col">
+        {% for user_entry in top_users_badges %}
+        <div class="flex items-center gap-md px-md py-sm border-b border-outline-variant/50 hover:bg-surface-container transition-colors {% if forloop.counter <= 3 %}bg-surface-container-low{% endif %}">
+          <div class="w-8 text-center">
+            <span class="font-label-md text-label-md text-on-surface-variant">{{ forloop.counter }}</span>
+          </div>
+          {% if user_entry.avatar %}
+            <img src="{{ user_entry.avatar.url }}" class="w-10 h-10 rounded-full object-cover shrink-0" alt="{{ user_entry.username }}"/>
+          {% else %}
+            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ user_entry.username|first|upper }}</div>
+          {% endif %}
+          <div class="flex-grow min-w-0">
+            <p class="font-label-md text-label-md text-on-surface truncate">{{ user_entry.username }}</p>
+            <div class="flex gap-xs flex-wrap mt-xs">
+              {% for badge in user_entry.badges.all|slice:":3" %}
+              <span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded">{{ badge.get_badge_type_display }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          <span class="font-label-md text-label-md text-on-surface shrink-0">{{ user_entry.badge_count }} <span class="text-on-surface-variant font-label-sm">badges</span></span>
+        </div>
+        {% empty %}
+        <div class="p-xl text-center text-on-surface-variant font-body-sm text-body-sm">No badges earned yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Thread Authors -->
+  {% if top_thread_authors %}
+  <div class="mt-xl bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+    <div class="p-md border-b border-outline-variant flex items-center gap-xs">
+      <span class="material-symbols-outlined text-primary">forum</span>
+      <h2 class="font-headline-sm text-headline-sm text-on-surface">Most Active Posters</h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 divide-x divide-outline-variant">
+      {% for u in top_thread_authors %}
+      <div class="flex flex-col items-center p-md gap-xs text-center">
+        {% if u.avatar %}
+          <img src="{{ u.avatar.url }}" class="w-12 h-12 rounded-full object-cover" alt="{{ u.username }}"/>
+        {% else %}
+          <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-headline-sm">{{ u.username|first|upper }}</div>
+        {% endif %}
+        <p class="font-label-md text-label-md text-on-surface truncate w-full">{{ u.username }}</p>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">{{ u.thread_count }} threads</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Discover Portfolios – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-lg md:py-xl">
+  <!-- Header + Search -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-lg">
+    <div>
+      <h1 class="font-headline-lg text-headline-lg text-on-background">Discover Portfolios</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Browse public portfolios from our community</p>
+    </div>
+    <a href="{% url 'portfolio_create' %}" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-full hover:bg-on-primary-fixed-variant transition-colors flex items-center gap-xs self-start">
+      <span class="material-symbols-outlined text-[18px]">add</span> Create Portfolio
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="flex flex-wrap gap-sm items-center mb-lg">
+    <div class="flex items-center bg-surface-container-lowest border border-outline-variant rounded-full px-sm py-xs flex-grow max-w-sm focus-within:border-primary transition-colors">
+      <span class="material-symbols-outlined text-outline mr-xs text-[18px]">search</span>
+      <input name="search" type="text" placeholder="Search portfolios or creators..." value="{{ search }}" class="bg-transparent outline-none ring-0 text-body-sm text-on-surface w-full placeholder:text-outline p-0 focus:ring-0"/>
+    </div>
+    {% if templates %}
+    <div class="flex gap-xs flex-wrap">
+      <a href="{% url 'portfolio_list' %}{% if search %}?search={{ search }}{% endif %}" class="font-label-sm text-label-sm px-sm py-xs rounded-full border transition-colors {% if not active_template %}bg-primary text-on-primary border-primary{% else %}border-outline-variant text-on-surface hover:border-primary hover:text-primary{% endif %}">All</a>
+      {% for tmpl in templates %}
+      <a href="?template={{ tmpl.slug }}{% if search %}&search={{ search }}{% endif %}" class="font-label-sm text-label-sm px-sm py-xs rounded-full border transition-colors {% if active_template == tmpl.slug %}bg-primary text-on-primary border-primary{% else %}border-outline-variant text-on-surface hover:border-primary hover:text-primary{% endif %}">{{ tmpl.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <select name="sort" onchange="this.form.submit()" class="font-label-sm text-label-sm px-sm py-xs border border-outline-variant rounded-full bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary">
+      <option value="-updated_at" {% if sort == '-updated_at' %}selected{% endif %}>Recently Updated</option>
+      <option value="-views_count" {% if sort == '-views_count' %}selected{% endif %}>Most Viewed</option>
+      <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest</option>
+      <option value="title" {% if sort == 'title' %}selected{% endif %}>A–Z</option>
+    </select>
+  </form>
+
+  <!-- Portfolio Grid -->
+  {% if portfolios %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md mb-xl">
+    {% for portfolio in portfolios %}
+    {% with idx=forloop.counter0 %}
+    <a href="{% url 'portfolio_detail' portfolio.slug %}" class="card-hover group rounded-xl bg-surface-container-lowest border border-outline-variant overflow-hidden shadow-sm flex flex-col">
+      <!-- Template-specific preview -->
+      {% with slug=portfolio.template.slug|default:"" %}
+      {% if slug == "developer-pro" or slug == "developer" %}
+      <div class="h-36 bg-[#0d1117] relative overflow-hidden p-3 flex flex-col justify-between shrink-0 select-none">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#ff5f57]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#febc2e]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#28c840]"></span>
+        </div>
+        <div class="font-mono overflow-hidden">
+          <p class="text-[#22c55e] text-[10px] truncate">$ whoami — {{ portfolio.user.username }}</p>
+          <p class="text-white text-[13px] font-bold truncate mt-0.5">{{ portfolio.title }}</p>
+          <p class="text-[#475569] text-[9px] leading-snug mt-1 line-clamp-2">{{ portfolio.get_about|default:"..."|truncatechars:70 }}</p>
+        </div>
+        {% if portfolio.is_featured %}<span class="absolute top-2 right-2 bg-[#22c55e]/20 text-[#22c55e] text-[9px] font-bold px-1.5 py-0.5 rounded">Featured</span>{% endif %}
+      </div>
+
+      {% elif slug == "designer-minimal" or slug == "minimalist" or slug == "minimal" %}
+      <div class="h-36 bg-white relative overflow-hidden p-4 flex flex-col justify-between border-b border-[#e5e5e5] select-none">
+        <div class="w-6 h-[2px] bg-[#171717]"></div>
+        <div>
+          <p class="text-[#a3a3a3] text-[9px] font-semibold uppercase tracking-[0.18em] mb-1">{{ portfolio.user.username }}</p>
+          <h3 class="text-[#171717] font-black text-[15px] leading-tight line-clamp-2">{{ portfolio.title }}</h3>
+          {% if portfolio.skills.all %}
+          <div class="flex flex-wrap gap-1 mt-2">
+            {% for skill in portfolio.skills.all|slice:":3" %}
+            <span class="text-[9px] border border-[#d4d4d4] text-[#525252] px-1.5 py-0.5 rounded-full">{{ skill.name }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% if portfolio.is_featured %}<span class="absolute top-2 right-2 bg-[#171717] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Featured</span>{% endif %}
+      </div>
+
+      {% elif slug == "creative-agency" or slug == "creative-studio" or slug == "creative" %}
+      <div class="h-36 relative overflow-hidden flex flex-col justify-end p-4 select-none" style="background: linear-gradient(135deg,#7c3aed 0%,#db2777 55%,#f97316 100%)">
+        <div class="absolute inset-0 bg-black/25"></div>
+        {% if portfolio.is_featured %}<span class="absolute top-2 right-2 bg-white/90 text-[#7c3aed] text-[9px] font-bold px-1.5 py-0.5 rounded z-10">Featured</span>{% endif %}
+        <div class="relative z-10">
+          <p class="text-white/60 text-[9px] font-bold uppercase tracking-widest mb-1">{{ portfolio.user.username }}</p>
+          <h3 class="text-white font-black text-[15px] leading-tight line-clamp-2">{{ portfolio.title }}</h3>
+          {% if portfolio.skills.all %}
+          <div class="flex flex-wrap gap-1 mt-2">
+            {% for skill in portfolio.skills.all|slice:":3" %}
+            <span class="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full backdrop-blur-sm">{{ skill.name }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% elif slug == "research-pro" or slug == "executive" or slug == "professional" %}
+      <div class="h-36 bg-[#f8fafc] relative overflow-hidden p-4 flex flex-col justify-between border-b border-[#e2e8f0] select-none">
+        <div class="flex items-start gap-2.5">
+          <div class="w-[3px] h-10 bg-primary rounded-full shrink-0 mt-0.5"></div>
+          <div class="min-w-0">
+            <p class="text-primary text-[9px] font-bold uppercase tracking-wider truncate">{{ portfolio.template.name }}</p>
+            <h3 class="text-[#0f172a] font-bold text-[13px] leading-snug line-clamp-2">{{ portfolio.title }}</h3>
+          </div>
+        </div>
+        <p class="text-[#64748b] text-[9px] leading-relaxed line-clamp-2">{{ portfolio.get_about|default:"No description yet."|truncatechars:90 }}</p>
+        {% if portfolio.is_featured %}<span class="absolute top-2 right-2 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Featured</span>{% endif %}
+      </div>
+
+      {% else %}
+      <div class="h-36 portfolio-preview-gradient-{{ idx }} relative flex items-end p-sm select-none">
+        <div class="absolute inset-0 bg-black/10"></div>
+        <span class="gradient-letter relative z-10 font-display text-[52px] font-bold leading-none">{{ portfolio.user.username|first|upper }}</span>
+        {% if portfolio.is_featured %}<span class="absolute top-sm right-sm bg-white/90 text-primary text-[10px] font-bold px-xs py-0.5 rounded uppercase backdrop-blur-sm">Featured</span>{% endif %}
+      </div>
+      {% endif %}
+      {% endwith %}
+      <!-- Info -->
+      <div class="p-sm flex flex-col gap-xs flex-grow">
+        <div class="flex items-center gap-xs">
+          {% if portfolio.user.avatar %}
+          <img src="{{ portfolio.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ portfolio.user.username }}"/>
+          {% else %}
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-body-sm shrink-0">{{ portfolio.user.username|first|upper }}</div>
+          {% endif %}
+          <div class="min-w-0">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors truncate">{{ portfolio.title }}</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant truncate">by {{ portfolio.user.username }}</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between mt-auto pt-xs border-t border-outline-variant">
+          {% if portfolio.template %}
+          <span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded truncate">{{ portfolio.template.name }}</span>
+          {% else %}
+          <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-xs py-0.5 rounded">Custom</span>
+          {% endif %}
+          <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[14px]">visibility</span> {{ portfolio.views_count }}
+          </span>
+        </div>
+      </div>
+    </a>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  <!-- Pagination -->
+  {% if is_paginated %}
+  <div class="flex justify-center gap-xs mt-lg">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if active_template %}&template={{ active_template }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="px-sm py-xs border border-outline-variant rounded-lg text-on-surface hover:border-primary hover:text-primary transition-colors font-label-md text-label-md">← Prev</a>
+    {% endif %}
+    <span class="px-sm py-xs bg-surface-container rounded-lg text-on-surface font-label-md text-label-md">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if active_template %}&template={{ active_template }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="px-sm py-xs border border-outline-variant rounded-lg text-on-surface hover:border-primary hover:text-primary transition-colors font-label-md text-label-md">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="flex flex-col items-center justify-center py-xxl text-center">
+    <span class="material-symbols-outlined text-[64px] text-outline mb-md">search_off</span>
+    <h3 class="font-headline-md text-headline-md text-on-surface mb-xs">No portfolios found</h3>
+    <p class="font-body-sm text-body-sm text-on-surface-variant">Try a different search term or template filter.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

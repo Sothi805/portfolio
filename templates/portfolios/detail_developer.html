@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block title %}{{ portfolio.title }} – ProPortfolio{% endblock %}
+
+{% block extra_head %}
+<style>
+  body { background: #0f172a !important; }
+  .dev-template a { color: inherit; text-decoration: none; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  .cursor-blink { animation: blink 1.2s step-start infinite; }
+  @keyframes fadeSlideUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+  .dev-fade { animation: fadeSlideUp 0.5s ease-out both; }
+  .dev-fade:nth-child(1){animation-delay:.1s} .dev-fade:nth-child(2){animation-delay:.2s} .dev-fade:nth-child(3){animation-delay:.3s}
+  .dev-fade:nth-child(4){animation-delay:.4s} .dev-fade:nth-child(5){animation-delay:.5s}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dev-template min-h-screen">
+  <!-- Back nav (styled for dark) -->
+  <div class="max-w-5xl mx-auto px-margin-mobile py-sm">
+    <a href="{% url 'portfolio_list' %}" class="inline-flex items-center gap-xs text-[#64748b] hover:text-[#22d3ee] transition-colors text-sm font-mono">
+      <span class="material-symbols-outlined text-[16px]">arrow_back</span> cd ../portfolios
+    </a>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="relative border-b border-[#1e293b] overflow-hidden">
+    <div class="absolute inset-0" style="background: linear-gradient(135deg, #0f172a 0%, #1a1035 50%, #0c1a2e 100%);"></div>
+    <!-- Grid lines decoration -->
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image: linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(90deg, #22d3ee 1px, transparent 1px); background-size:48px 48px;"></div>
+    <!-- Glow orbs -->
+    <div class="absolute top-0 left-1/3 w-64 h-64 bg-[#22d3ee] opacity-[0.06] rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 w-72 h-72 bg-[#a78bfa] opacity-[0.05] rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-margin-mobile py-xl flex flex-col md:flex-row items-start md:items-end gap-lg">
+      <!-- Avatar -->
+      <div class="shrink-0">
+        {% if portfolio.user.avatar %}
+          <img src="{{ portfolio.user.avatar.url }}" class="w-24 h-24 rounded-2xl object-cover border-2 border-[#22d3ee40] shadow-lg" alt="{{ portfolio.user.username }}"/>
+        {% else %}
+          <div class="w-24 h-24 rounded-2xl bg-[#1e293b] border-2 border-[#22d3ee40] flex items-center justify-center shadow-lg" style="font-family:monospace;">
+            <span class="text-4xl font-bold text-[#22d3ee]">{{ portfolio.user.username|first|upper }}</span>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="flex-grow">
+        <!-- Terminal prompt style -->
+        <div class="font-mono text-[#64748b] text-sm mb-xs">
+          <span class="text-[#22d3ee]">~/portfolios/</span><span class="text-[#a78bfa]">{{ portfolio.user.username }}</span>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-xs" style="font-family: 'JetBrains Mono', monospace;">
+          {{ portfolio.title }}<span class="cursor-blink text-[#22d3ee]">_</span>
+        </h1>
+        <p class="text-[#64748b] font-mono text-sm">by <span class="text-[#a78bfa]">{{ portfolio.user.username }}</span></p>
+        <div class="flex items-center gap-sm mt-md flex-wrap">
+          {% if portfolio.template %}
+          <span class="dev-badge font-mono text-xs">🛠 {{ portfolio.template.name }}</span>
+          {% endif %}
+          <span class="font-mono text-xs text-[#64748b] flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">visibility</span> {{ portfolio.views_count }} views</span>
+          {% if user == portfolio.user %}
+          <a href="{% url 'portfolio_edit' portfolio.slug %}" class="font-mono text-xs bg-[#22d3ee15] border border-[#22d3ee30] text-[#22d3ee] px-sm py-1 rounded hover:bg-[#22d3ee25] transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">edit</span> edit
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="max-w-5xl mx-auto px-margin-mobile py-xl">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+      <!-- Main column -->
+      <div class="lg:col-span-2 flex flex-col gap-lg">
+
+        <!-- About -->
+        {% if portfolio.get_about %}
+        <div class="dev-card p-lg dev-fade">
+          <div class="flex items-center gap-sm mb-md">
+            <div class="w-1 h-6 bg-gradient-to-b from-[#22d3ee] to-[#a78bfa] rounded-full"></div>
+            <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest">// about.md</span>
+          </div>
+          <p class="text-[#cbd5e1] leading-relaxed text-base whitespace-pre-wrap" style="font-family: 'Inter', sans-serif;">{{ portfolio.get_about }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Projects -->
+        {% if portfolio.projects.all %}
+        <div class="dev-fade">
+          <div class="flex items-center gap-sm mb-md">
+            <div class="w-1 h-6 bg-gradient-to-b from-[#a78bfa] to-[#22d3ee] rounded-full"></div>
+            <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest">// projects/</span>
+            <span class="font-mono text-xs text-[#334155]">{{ portfolio.projects.all|length }} files</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+            {% for project in portfolio.projects.all %}
+            <div class="dev-project-card overflow-hidden group">
+              {% if project.image %}
+              <div class="h-40 overflow-hidden">
+                <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"/>
+              </div>
+              {% else %}
+              <div class="h-40 bg-[#0f172a] flex items-center justify-center border-b border-[#334155]">
+                <div class="text-center">
+                  <span class="font-mono text-4xl text-[#1e293b]">&lt;/&gt;</span>
+                </div>
+              </div>
+              {% endif %}
+              <div class="p-md">
+                <h3 class="font-mono text-[#e2e8f0] font-semibold mb-xs group-hover:text-[#22d3ee] transition-colors">{{ project.title }}</h3>
+                <p class="text-[#64748b] text-sm leading-relaxed line-clamp-2" style="font-family:sans-serif;">{{ project.description }}</p>
+                {% if project.url %}
+                <a href="{{ project.url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 mt-sm font-mono text-xs text-[#22d3ee] hover:underline">
+                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>view_project()
+                </a>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Testimonials -->
+        {% if portfolio.testimonials.all %}
+        <div class="dev-fade">
+          <div class="flex items-center gap-sm mb-md">
+            <div class="w-1 h-6 bg-[#22d3ee] rounded-full"></div>
+            <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest">// testimonials.json</span>
+          </div>
+          <div class="flex flex-col gap-md">
+            {% for t in portfolio.testimonials.all %}
+            <div class="dev-card p-md border-l-2 border-[#22d3ee40]">
+              <div class="flex mb-xs">{% for i in "12345" %}{% if forloop.counter <= t.rating %}<span class="text-[#22d3ee] text-sm">★</span>{% else %}<span class="text-[#334155] text-sm">★</span>{% endif %}{% endfor %}</div>
+              <p class="text-[#94a3b8] italic leading-relaxed" style="font-family:sans-serif;">{{ t.content }}</p>
+              <p class="font-mono text-xs text-[#22d3ee] mt-sm">— {{ t.author_name }}{% if t.author_role %}, <span class="text-[#64748b]">{{ t.author_role }}</span>{% endif %}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Experience -->
+        {% if portfolio.experiences.all %}
+        <div class="dev-fade">
+          <div class="flex items-center gap-sm mb-md">
+            <div class="w-1 h-6 bg-gradient-to-b from-[#22d3ee] to-[#a78bfa] rounded-full"></div>
+            <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest">// experience.log</span>
+          </div>
+          <div class="flex flex-col gap-sm">
+            {% for exp in portfolio.experiences.all %}
+            <div class="dev-card p-md">
+              <div class="flex flex-wrap items-center justify-between gap-sm mb-xs">
+                <span class="font-mono text-sm text-[#e2e8f0] font-semibold">{{ exp.role }}</span>
+                <span class="font-mono text-xs text-[#64748b] bg-[#0f172a] px-sm py-0.5 rounded">{{ exp.period }}</span>
+              </div>
+              <p class="font-mono text-xs text-[#22d3ee] mb-xs">{{ exp.company }}</p>
+              {% if exp.description %}<p class="text-[#64748b] text-sm leading-relaxed" style="font-family:sans-serif;">{{ exp.description }}</p>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Education -->
+        {% if portfolio.educations.all %}
+        <div class="dev-fade">
+          <div class="flex items-center gap-sm mb-md">
+            <div class="w-1 h-6 bg-gradient-to-b from-[#a78bfa] to-[#22d3ee] rounded-full"></div>
+            <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest">// education.md</span>
+          </div>
+          <div class="flex flex-col gap-sm">
+            {% for edu in portfolio.educations.all %}
+            <div class="dev-card p-md">
+              <div class="flex flex-wrap items-center justify-between gap-sm mb-xs">
+                <span class="font-mono text-sm text-[#e2e8f0] font-semibold">{{ edu.institution }}</span>
+                <span class="font-mono text-xs text-[#64748b] bg-[#0f172a] px-sm py-0.5 rounded">{{ edu.period }}</span>
+              </div>
+              {% if edu.degree %}<p class="font-mono text-xs text-[#a78bfa]">{{ edu.degree }}{% if edu.field_of_study %} — {{ edu.field_of_study }}{% endif %}</p>{% endif %}
+              {% if edu.description %}<p class="text-[#64748b] text-sm mt-xs leading-relaxed" style="font-family:sans-serif;">{{ edu.description }}</p>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="flex flex-col gap-md">
+        <!-- Skills as code -->
+        {% if portfolio.skills.all %}
+        <div class="dev-card p-md dev-fade">
+          <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest block mb-md">// skills.config</span>
+          <div class="flex flex-col gap-sm">
+            {% for skill in portfolio.skills.all %}
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-mono text-sm text-[#e2e8f0]">{{ skill.name }}</span>
+                <span class="font-mono text-xs text-[#64748b]">
+                  {% if skill.proficiency == 'expert' %}100%
+                  {% elif skill.proficiency == 'intermediate' %}70%
+                  {% else %}40%{% endif %}
+                </span>
+              </div>
+              <div class="dev-skill-bar">
+                <div class="dev-skill-bar-fill"
+                     style="width:{% if skill.proficiency == 'expert' %}100{% elif skill.proficiency == 'intermediate' %}70{% else %}40{% endif %}%"></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Contact -->
+        {% with contact=portfolio.get_contact %}
+        {% if contact.email or contact.phone or contact.location %}
+        <div class="dev-card p-md dev-fade">
+          <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest block mb-md">// contact.env</span>
+          <div class="flex flex-col gap-sm">
+            {% if contact.email %}
+            <a href="mailto:{{ contact.email }}" class="flex items-center gap-sm text-[#94a3b8] hover:text-[#22d3ee] transition-colors">
+              <span class="font-mono text-[#22d3ee] text-xs">EMAIL=</span>
+              <span class="font-mono text-xs break-all">{{ contact.email }}</span>
+            </a>
+            {% endif %}
+            {% if contact.phone %}
+            <div class="flex items-center gap-sm">
+              <span class="font-mono text-[#22d3ee] text-xs">PHONE=</span>
+              <span class="font-mono text-xs text-[#94a3b8]">{{ contact.phone }}</span>
+            </div>
+            {% endif %}
+            {% if contact.location %}
+            <div class="flex items-center gap-sm">
+              <span class="font-mono text-[#22d3ee] text-xs">LOCATION=</span>
+              <span class="font-mono text-xs text-[#94a3b8]">{{ contact.location }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Meta info -->
+        <div class="dev-card p-md dev-fade">
+          <span class="font-mono text-xs text-[#64748b] uppercase tracking-widest block mb-md">// git.log</span>
+          <div class="flex flex-col gap-xs font-mono text-xs text-[#64748b]">
+            <div class="flex justify-between"><span>created</span><span class="text-[#94a3b8]">{{ portfolio.created_at|date:"Y-m-d" }}</span></div>
+            <div class="flex justify-between"><span>updated</span><span class="text-[#94a3b8]">{{ portfolio.updated_at|date:"Y-m-d" }}</span></div>
+            <div class="flex justify-between"><span>views</span><span class="text-[#22d3ee]">{{ portfolio.views_count }}</span></div>
+            <div class="flex justify-between"><span>projects</span><span class="text-[#a78bfa]">{{ portfolio.projects.all|length }}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

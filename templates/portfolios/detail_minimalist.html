@@ -1,0 +1,255 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ portfolio.title }} â€“ ProPortfolio{% endblock %}
+
+{% block extra_head %}
+<style>
+  .minimal-body { background: #ffffff; }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .reveal { animation: revealUp 0.5s ease-out both; }
+  .reveal:nth-child(1) { animation-delay: .05s }
+  .reveal:nth-child(2) { animation-delay: .12s }
+  .reveal:nth-child(3) { animation-delay: .19s }
+  .reveal:nth-child(4) { animation-delay: .26s }
+  .reveal:nth-child(5) { animation-delay: .33s }
+  .reveal:nth-child(6) { animation-delay: .40s }
+  .reveal:nth-child(7) { animation-delay: .47s }
+
+  /* Section separator */
+  .min-section {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  .min-section:last-child { border-bottom: none; }
+
+  /* Section label */
+  .min-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #a3a3a3;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Skill tag */
+  .skill-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid;
+    line-height: 1.6;
+  }
+  .skill-expert      { background: #171717; color: #ffffff; border-color: #171717; }
+  .skill-intermediate { background: #f5f5f5; color: #262626; border-color: #d4d4d4; }
+  .skill-beginner    { background: #fafafa; color: #a3a3a3; border-color: #e5e5e5; }
+
+  /* Project/experience/education row */
+  .min-row {
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .min-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .min-row:first-child { padding-top: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="minimal-body min-h-screen">
+  <div class="max-w-2xl mx-auto px-6 py-12">
+
+    <!-- Back -->
+    <a href="{% url 'portfolio_list' %}" class="inline-flex items-center gap-1 text-[#a3a3a3] hover:text-[#171717] transition-colors text-sm mb-10">
+      <span class="material-symbols-outlined text-[16px]">arrow_back</span> All Portfolios
+    </a>
+
+    <!-- Header -->
+    <header class="reveal min-section">
+      <div class="flex items-center gap-5 mb-6">
+        {% if portfolio.user.avatar %}
+          <img src="{{ portfolio.user.avatar.url }}" class="w-16 h-16 rounded-full object-cover shrink-0 border border-[#e5e5e5]" alt="{{ portfolio.user.username }}"/>
+        {% else %}
+          <div class="w-16 h-16 rounded-full border-2 border-[#171717] flex items-center justify-center text-2xl font-black text-[#171717] bg-white shrink-0 select-none">{{ portfolio.user.username|first|upper }}</div>
+        {% endif %}
+        <div>
+          <p class="text-xs text-[#a3a3a3] font-medium uppercase tracking-widest mb-1">{{ portfolio.user.username }}</p>
+          <h1 class="text-3xl font-black text-[#171717] leading-tight tracking-tight">{{ portfolio.title }}</h1>
+        </div>
+      </div>
+
+      <!-- Meta row -->
+      <div class="flex items-center gap-3 text-xs text-[#a3a3a3] flex-wrap">
+        {% if portfolio.template %}
+        <span class="inline-flex items-center gap-1 bg-[#f5f5f5] px-2 py-0.5 rounded text-[#525252]">{{ portfolio.template.name }}</span>
+        <span>Â·</span>
+        {% endif %}
+        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">visibility</span>{{ portfolio.views_count }} views</span>
+        <span>Â·</span>
+        <span>Updated {{ portfolio.updated_at|date:"M Y" }}</span>
+        {% if user == portfolio.user %}
+        <span>Â·</span>
+        <a href="{% url 'portfolio_edit' portfolio.slug %}" class="text-[#171717] hover:underline font-semibold flex items-center gap-1">
+          <span class="material-symbols-outlined text-[13px]">edit</span>Edit
+        </a>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- About -->
+    {% if portfolio.get_about %}
+    <section class="reveal min-section">
+      <p class="min-label">About</p>
+      <p class="text-[#262626] leading-[1.85] text-[16px] whitespace-pre-wrap">{{ portfolio.get_about }}</p>
+    </section>
+    {% endif %}
+
+    <!-- Skills -->
+    {% if portfolio.skills.all %}
+    <section class="reveal min-section">
+      <p class="min-label">Skills</p>
+      <div class="flex flex-wrap gap-2 mb-4">
+        {% for skill in portfolio.skills.all %}
+        <span class="skill-tag
+          {% if skill.proficiency == 'expert' %}skill-expert
+          {% elif skill.proficiency == 'intermediate' %}skill-intermediate
+          {% else %}skill-beginner{% endif %}">
+          {{ skill.name }}
+        </span>
+        {% endfor %}
+      </div>
+      <div class="flex items-center gap-4 text-xs text-[#a3a3a3]">
+        <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#171717]"></span>Expert</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#f5f5f5] border border-[#d4d4d4]"></span>Intermediate</span>
+        <span class="flex items-center gap-1.5"><span class="inline-block w-2.5 h-2.5 rounded-full bg-[#fafafa] border border-[#e5e5e5]"></span>Beginner</span>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Projects -->
+    {% if portfolio.projects.all %}
+    <section class="reveal min-section">
+      <p class="min-label">Projects</p>
+      <div>
+        {% for project in portfolio.projects.all %}
+        <div class="min-row">
+          <div class="flex items-start gap-4">
+            {% if project.image %}
+            <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-14 h-14 rounded-lg object-cover border border-[#e5e5e5] shrink-0 mt-0.5"/>
+            {% endif %}
+            <div class="flex-grow min-w-0">
+              <h3 class="text-base font-bold text-[#171717] leading-snug mb-1">{{ project.title }}</h3>
+              <p class="text-[#525252] text-sm leading-relaxed">{{ project.description }}</p>
+              {% if project.url %}
+              <a href="{{ project.url }}" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-xs text-[#171717] font-semibold mt-2 border-b border-[#171717] hover:opacity-50 transition-opacity pb-0.5">
+                View project <span class="material-symbols-outlined text-[13px]">arrow_outward</span>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Experience -->
+    {% if portfolio.experiences.all %}
+    <section class="reveal min-section">
+      <p class="min-label">Work Experience</p>
+      <div>
+        {% for exp in portfolio.experiences.all %}
+        <div class="min-row">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h3 class="text-base font-bold text-[#171717] leading-snug">{{ exp.role }}</h3>
+              <p class="text-[#525252] text-sm font-medium mt-0.5">{{ exp.company }}</p>
+            </div>
+            <span class="text-xs text-[#a3a3a3] shrink-0 mt-0.5 font-medium">{{ exp.period }}</span>
+          </div>
+          {% if exp.description %}
+          <p class="text-[#525252] text-sm leading-relaxed mt-2">{{ exp.description }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Education -->
+    {% if portfolio.educations.all %}
+    <section class="reveal min-section">
+      <p class="min-label">Education</p>
+      <div>
+        {% for edu in portfolio.educations.all %}
+        <div class="min-row">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h3 class="text-base font-bold text-[#171717] leading-snug">{{ edu.institution }}</h3>
+              {% if edu.degree %}
+              <p class="text-[#525252] text-sm font-medium mt-0.5">{{ edu.degree }}{% if edu.field_of_study %} Â· {{ edu.field_of_study }}{% endif %}</p>
+              {% endif %}
+            </div>
+            <span class="text-xs text-[#a3a3a3] shrink-0 mt-0.5 font-medium">{{ edu.period }}</span>
+          </div>
+          {% if edu.description %}
+          <p class="text-[#525252] text-sm leading-relaxed mt-2">{{ edu.description }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Testimonials -->
+    {% if portfolio.testimonials.all %}
+    <section class="reveal min-section">
+      <p class="min-label">Testimonials</p>
+      <div class="flex flex-col gap-6">
+        {% for t in portfolio.testimonials.all %}
+        <div class="pl-4 border-l-[3px] border-[#171717]">
+          <p class="text-[#262626] text-base italic leading-relaxed mb-2">"{{ t.content }}"</p>
+          <p class="text-[#171717] font-bold text-sm">{{ t.author_name }}</p>
+          {% if t.author_role %}<p class="text-[#a3a3a3] text-xs mt-0.5">{{ t.author_role }}</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Contact -->
+    {% with contact=portfolio.get_contact %}
+    {% if contact.email or contact.phone or contact.location %}
+    <section class="reveal min-section">
+      <p class="min-label">Contact</p>
+      <div class="flex flex-wrap gap-5">
+        {% if contact.email %}
+        <a href="mailto:{{ contact.email }}" class="flex items-center gap-2 text-[#171717] hover:opacity-50 transition-opacity text-sm font-medium">
+          <span class="material-symbols-outlined text-[17px]">mail</span>{{ contact.email }}
+        </a>
+        {% endif %}
+        {% if contact.phone %}
+        <span class="flex items-center gap-2 text-[#525252] text-sm">
+          <span class="material-symbols-outlined text-[17px]">phone</span>{{ contact.phone }}
+        </span>
+        {% endif %}
+        {% if contact.location %}
+        <span class="flex items-center gap-2 text-[#525252] text-sm">
+          <span class="material-symbols-outlined text-[17px]">location_on</span>{{ contact.location }}
+        </span>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+    {% endwith %}
+
+  </div>
+</div>
+{% endblock %}
+

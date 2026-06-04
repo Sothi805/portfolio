@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Join ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="flex min-h-[calc(100vh-4rem)] bg-background">
+  <!-- Left branding panel (hidden on mobile) -->
+  <div class="hidden lg:flex lg:w-5/12 relative overflow-hidden items-center justify-center">
+    <div class="hero-gradient absolute inset-0"></div>
+    <div class="absolute inset-0 opacity-[0.07]" style="background-image: radial-gradient(circle at 2px 2px, #fff 1.5px, transparent 0); background-size: 24px 24px;"></div>
+    <div class="absolute -top-20 -left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
+    <div class="relative z-10 p-xl max-w-sm text-center">
+      <div class="flex items-center justify-center gap-sm mb-lg">
+        <span class="material-symbols-outlined text-white text-[40px] icon-fill">work</span>
+        <span class="font-display text-[32px] font-bold text-white">ProPortfolio</span>
+      </div>
+      <h2 class="font-headline-md text-headline-md text-white mb-md">Start your journey today</h2>
+      <p class="font-body-md text-body-md text-white/75 mb-xl">Join thousands of creators building beautiful portfolios and growing their careers.</p>
+      <div class="grid grid-cols-2 gap-sm">
+        <div class="bg-white/10 rounded-xl p-md backdrop-blur-sm text-center">
+          <span class="material-symbols-outlined text-white text-[28px] icon-fill block mb-xs">work</span>
+          <p class="font-label-sm text-label-sm text-white/90">Portfolio Builder</p>
+        </div>
+        <div class="bg-white/10 rounded-xl p-md backdrop-blur-sm text-center">
+          <span class="material-symbols-outlined text-white text-[28px] icon-fill block mb-xs">forum</span>
+          <p class="font-label-sm text-label-sm text-white/90">Community Forum</p>
+        </div>
+        <div class="bg-white/10 rounded-xl p-md backdrop-blur-sm text-center">
+          <span class="material-symbols-outlined text-white text-[28px] icon-fill block mb-xs">military_tech</span>
+          <p class="font-label-sm text-label-sm text-white/90">Earn Badges</p>
+        </div>
+        <div class="bg-white/10 rounded-xl p-md backdrop-blur-sm text-center">
+          <span class="material-symbols-outlined text-white text-[28px] icon-fill block mb-xs">notifications</span>
+          <p class="font-label-sm text-label-sm text-white/90">Real-time Alerts</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right form panel -->
+  <div class="flex flex-1 items-center justify-center px-sm py-xl">
+    <div class="w-full max-w-md">
+      <!-- Mobile logo -->
+      <div class="flex items-center justify-center gap-xs mb-lg lg:hidden">
+        <span class="material-symbols-outlined text-primary icon-fill">work</span>
+        <span class="font-headline-md text-headline-md font-bold text-primary">ProPortfolio</span>
+      </div>
+
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm p-lg">
+        <div class="text-center mb-lg">
+          <div class="w-12 h-12 bg-primary-container rounded-xl flex items-center justify-center mx-auto mb-sm">
+            <span class="material-symbols-outlined text-primary icon-fill">person_add</span>
+          </div>
+          <h1 class="font-headline-md text-headline-md text-on-background">Create your account</h1>
+          <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Start building your professional portfolio today</p>
+        </div>
+
+        <form method="post" class="flex flex-col gap-md">
+          {% csrf_token %}
+          <div>
+            <label class="block font-label-md text-label-md text-on-surface mb-xs">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+            <p class="font-label-sm text-label-sm text-error mt-xs flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[14px]">error</span>{{ form.username.errors.0 }}
+            </p>
+            {% endif %}
+          </div>
+          <div>
+            <label class="block font-label-md text-label-md text-on-surface mb-xs">Email Address</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <p class="font-label-sm text-label-sm text-error mt-xs flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[14px]">error</span>{{ form.email.errors.0 }}
+            </p>
+            {% endif %}
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-md">
+            <div>
+              <label class="block font-label-md text-label-md text-on-surface mb-xs">Password</label>
+              {{ form.password }}
+              {% if form.password.errors %}
+              <p class="font-label-sm text-label-sm text-error mt-xs flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[14px]">error</span>{{ form.password.errors.0 }}
+              </p>
+              {% endif %}
+            </div>
+            <div>
+              <label class="block font-label-md text-label-md text-on-surface mb-xs">Confirm Password</label>
+              {{ form.password2 }}
+              {% if form.password2.errors %}
+              <p class="font-label-sm text-label-sm text-error mt-xs flex items-center gap-xs">
+                <span class="material-symbols-outlined text-[14px]">error</span>{{ form.password2.errors.0 }}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          {% if form.non_field_errors %}
+          <div class="bg-error-container text-on-error-container rounded-lg p-sm font-body-sm text-body-sm flex items-start gap-xs">
+            <span class="material-symbols-outlined text-error text-[16px] mt-0.5 shrink-0">error</span>
+            {{ form.non_field_errors.0 }}
+          </div>
+          {% endif %}
+          <button type="submit" class="w-full font-label-md text-label-md bg-primary text-on-primary py-sm rounded-lg hover:bg-on-primary-fixed-variant hover:-translate-y-0.5 transition-all shadow-sm flex items-center justify-center gap-xs mt-xs">
+            <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+            Create Account
+          </button>
+        </form>
+
+        <div class="divider-text my-md">or</div>
+
+        <div class="text-center">
+          <p class="font-body-sm text-body-sm text-on-surface-variant">
+            Already have an account?
+            <a href="{% url 'login' %}" class="text-primary hover:underline font-label-md">Sign In</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

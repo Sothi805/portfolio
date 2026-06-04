@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-lg md:py-xl">
+  <!-- Header -->
+  <div class="relative overflow-hidden rounded-2xl mb-xl shadow-sm">
+    <div class="hero-gradient absolute inset-0"></div>
+    <div class="absolute inset-0 opacity-[0.07]" style="background-image: radial-gradient(circle at 2px 2px, #fff 1.5px, transparent 0); background-size: 24px 24px;"></div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-md p-lg">
+      <div class="flex items-center gap-md">
+        {% if user.avatar %}
+          <img src="{{ user.avatar.url }}" class="w-16 h-16 rounded-full object-cover border-2 border-white/50 shadow-md shrink-0" alt="{{ user.username }}"/>
+        {% else %}
+          <div class="w-16 h-16 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-2xl font-bold text-white shrink-0">{{ user.username|first|upper }}</div>
+        {% endif %}
+        <div>
+          <h1 class="font-headline-md text-headline-md text-white">Welcome, {{ user.username }}!</h1>
+          <p class="font-body-sm text-body-sm text-white/75">{{ user.email }}</p>
+        </div>
+      </div>
+      <a href="{% url 'portfolio_create' %}" class="font-label-md text-label-md bg-white text-primary px-lg py-sm rounded-full hover:-translate-y-0.5 hover:shadow-lg transition-all flex items-center gap-xs self-start shadow-md">
+        <span class="material-symbols-outlined text-[18px]">add</span> New Portfolio
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-md mb-xl">
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+      <div class="flex items-center gap-sm mb-xs">
+        <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[18px]">work</span></div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Portfolios</span>
+      </div>
+      <p class="font-display text-[32px] font-bold text-primary">{{ portfolios|length }}</p>
+    </div>
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+      <div class="flex items-center gap-sm mb-xs">
+        <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center"><span class="material-symbols-outlined text-on-surface text-[18px]">visibility</span></div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Views</span>
+      </div>
+      <p class="font-display text-[32px] font-bold text-on-background">{{ total_views }}</p>
+    </div>
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+      <div class="flex items-center gap-sm mb-xs">
+        <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center"><span class="material-symbols-outlined text-on-surface text-[18px]">folder_open</span></div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Projects</span>
+      </div>
+      <p class="font-display text-[32px] font-bold text-on-background">{{ total_projects }}</p>
+    </div>
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+      <div class="flex items-center gap-sm mb-xs">
+        <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[18px]">emoji_events</span></div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Points</span>
+      </div>
+      <p class="font-display text-[32px] font-bold text-primary">{{ user_points.total_points|default:0 }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+    <!-- Portfolios List (2/3) -->
+    <div class="lg:col-span-2 flex flex-col gap-md">
+      <h2 class="font-headline-sm text-headline-sm text-on-background">My Portfolios</h2>
+      {% for portfolio in portfolios %}
+      {% with idx=forloop.counter0 %}
+      <div class="card-hover bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-sm overflow-hidden">
+        <!-- Gradient side accent -->
+        <div class="md:w-3 h-2 md:h-auto portfolio-preview-gradient-{{ idx }} flex-shrink-0 md:self-stretch rounded-t-xl md:rounded-t-none md:rounded-l-xl"></div>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-sm flex-grow px-md py-sm">
+          <div class="flex items-center gap-md">
+            <div class="w-12 h-12 rounded-lg portfolio-preview-gradient-{{ idx }} flex items-center justify-center text-white font-bold text-headline-sm shadow-sm">
+              {{ portfolio.title|first|upper }}
+            </div>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface">{{ portfolio.title }}</h3>
+              <div class="flex items-center gap-sm mt-xs flex-wrap">
+                <span class="font-label-sm text-label-sm px-xs py-0.5 rounded-full capitalize
+                  {% if portfolio.status == 'public' %}bg-green-100 text-green-700
+                  {% elif portfolio.status == 'private' %}bg-yellow-100 text-yellow-700
+                  {% else %}bg-surface-container text-on-surface-variant{% endif %}">
+                  {{ portfolio.status }}
+                </span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">visibility</span> {{ portfolio.views_count }}
+                </span>
+                {% if portfolio.template %}
+                <span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded">{{ portfolio.template.name }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-sm shrink-0">
+            <a href="{% url 'portfolio_edit' portfolio.slug %}" class="font-label-md text-label-md border border-outline-variant text-on-surface px-sm py-xs rounded-lg hover:border-primary hover:text-primary transition-colors flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[16px]">edit</span> Edit
+            </a>
+            <a href="{% url 'portfolio_detail' portfolio.slug %}" class="font-label-md text-label-md bg-surface-container text-on-surface px-sm py-xs rounded-lg hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[16px]">open_in_new</span> View
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% empty %}
+      <div class="flex flex-col items-center justify-center py-xl border border-dashed border-outline-variant rounded-xl text-center">
+        <span class="material-symbols-outlined text-[48px] text-outline mb-md">work_outline</span>
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">No portfolios yet</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Create your first portfolio to get started.</p>
+        <a href="{% url 'portfolio_create' %}" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-full transition-colors">Create Portfolio</a>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Sidebar (1/3) -->
+    <div class="flex flex-col gap-md">
+      <!-- Badges -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Your Badges</h3>
+        {% if user_badges %}
+        <div class="flex flex-wrap gap-sm">
+          {% for badge in user_badges %}
+          <div class="flex items-center gap-xs px-sm py-xs rounded-full bg-primary-fixed border border-primary/20">
+            <span class="material-symbols-outlined text-primary text-[16px] icon-fill">{{ badge.get_icon }}</span>
+            <span class="font-label-sm text-label-sm text-primary">{{ badge.get_badge_type_display }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Start participating to earn badges!</p>
+        {% endif %}
+      </div>
+
+      <!-- Recent Notifications -->
+      {% if recent_notifications %}
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Recent Activity</h3>
+        <div class="flex flex-col gap-sm">
+          {% for notif in recent_notifications %}
+          <div class="flex items-start gap-sm">
+            <span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">{{ notif.get_icon }}</span>
+            <div>
+              <p class="font-label-md text-label-md text-on-surface">{{ notif.title }}</p>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">{{ notif.created_at|timesince }} ago</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quick Links -->
+      <div class="bg-surface-container border border-outline-variant rounded-xl p-md">
+        <h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wider">Quick Links</h3>
+        <div class="flex flex-col gap-xs">
+          <a href="{% url 'forum_categories' %}" class="flex items-center gap-sm py-xs text-on-surface hover:text-primary transition-colors font-body-sm text-body-sm">
+            <span class="material-symbols-outlined text-[18px]">forum</span> Community Forum
+          </a>
+          <a href="{% url 'forum_leaderboard' %}" class="flex items-center gap-sm py-xs text-on-surface hover:text-primary transition-colors font-body-sm text-body-sm">
+            <span class="material-symbols-outlined text-[18px]">leaderboard</span> Leaderboard
+          </a>
+          <a href="{% url 'profile' %}" class="flex items-center gap-sm py-xs text-on-surface hover:text-primary transition-colors font-body-sm text-body-sm">
+            <span class="material-symbols-outlined text-[18px]">person</span> Edit Profile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}ProPortfolio – Discover Amazing Portfolios{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-lg md:py-xl flex flex-col gap-xl">
+
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden rounded-2xl shadow-lg">
+    <!-- Animated gradient background -->
+    <div class="hero-gradient absolute inset-0"></div>
+    <!-- Dot grid overlay -->
+    <div class="absolute inset-0 opacity-[0.08] pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #fff 1.5px, transparent 0); background-size: 28px 28px;"></div>
+    <!-- Decorative glow orbs -->
+    <div class="absolute -top-16 -left-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-16 -right-16 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col items-center justify-center text-center py-16 md:py-24 px-sm">
+      <span class="inline-flex items-center gap-xs mb-md px-sm py-1.5 rounded-full bg-white/20 text-white font-label-sm text-label-sm uppercase tracking-wider backdrop-blur-sm border border-white/20">
+        <span class="w-2 h-2 rounded-full bg-green-300 pulse-dot"></span>
+        Professional Showcase Platform
+      </span>
+      <h1 class="font-display text-display text-white mb-md leading-tight">Your Work,<br/><span class="opacity-90">Elevated.</span></h1>
+      <p class="font-body-lg text-body-lg text-white/80 mb-lg max-w-2xl mx-auto">Discover top-tier portfolios from industry leaders. Build your own professional presence with minimalist, data-driven templates designed for high-growth creators.</p>
+      <div class="flex flex-wrap justify-center gap-sm">
+        <a href="{% url 'portfolio_create' %}" class="font-label-md text-label-md bg-white text-primary px-lg py-sm rounded-full hover:-translate-y-1 hover:shadow-xl transition-all flex items-center gap-xs shadow-md">
+          Create Your Portfolio <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </a>
+        <a href="{% url 'portfolio_list' %}" class="font-label-md text-label-md bg-white/10 text-white border border-white/30 px-lg py-sm rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm">
+          Explore Portfolios
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Stats Bar -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-sm">
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm text-center">
+      <p class="font-display text-[28px] font-bold text-primary mb-xs">{{ total_portfolios|default:"0" }}+</p>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Portfolios</p>
+    </div>
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm text-center">
+      <p class="font-display text-[28px] font-bold text-primary mb-xs">{{ total_creators|default:"0" }}+</p>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Creators</p>
+    </div>
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm text-center">
+      <p class="font-display text-[28px] font-bold text-primary mb-xs">{{ total_threads|default:"0" }}+</p>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Discussions</p>
+    </div>
+    <div class="stat-card bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm text-center">
+      <p class="font-display text-[28px] font-bold text-primary mb-xs">{{ total_views|default:"0" }}+</p>
+      <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Views</p>
+    </div>
+  </section>
+
+  <!-- Main 2-col Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+
+    <!-- Left: Featured Portfolios -->
+    <section class="lg:col-span-8 xl:col-span-9 flex flex-col gap-md">
+      <div class="flex items-center justify-between pb-xs border-b border-outline-variant">
+        <h2 class="font-headline-sm text-headline-sm text-on-background">Featured Portfolios</h2>
+        <a href="{% url 'portfolio_list' %}" class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-xs">
+          View All <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        </a>
+      </div>
+
+      {% if featured_portfolios or recent_portfolios %}
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-sm">
+        {% for portfolio in featured_portfolios %}
+        {% with idx=forloop.counter0 %}
+        <a href="{% url 'portfolio_detail' portfolio.slug %}" class="card-hover rounded-xl bg-surface-container-lowest border border-outline-variant flex flex-col cursor-pointer shadow-sm group overflow-hidden">
+          <!-- Gradient preview -->
+          <div class="h-28 relative overflow-hidden portfolio-preview-gradient-{{ idx }} flex items-end p-sm">
+            <div class="absolute inset-0 bg-black/10"></div>
+            <span class="gradient-letter relative z-10 font-display text-[40px] font-bold leading-none select-none">{{ portfolio.user.username|first|upper }}</span>
+            {% if portfolio.is_featured %}
+            <span class="absolute top-sm right-sm bg-white/90 text-primary text-[10px] font-bold px-xs py-0.5 rounded uppercase backdrop-blur-sm">Featured</span>
+            {% endif %}
+          </div>
+          <div class="p-sm flex flex-col gap-xs flex-grow">
+            <div class="flex items-center gap-xs">
+              {% if portfolio.user.avatar %}
+              <img src="{{ portfolio.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ portfolio.user.username }}"/>
+              {% else %}
+              <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 text-white font-bold text-body-sm">{{ portfolio.user.username|first|upper }}</div>
+              {% endif %}
+              <div class="min-w-0">
+                <h4 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors truncate">{{ portfolio.title }}</h4>
+                <p class="font-body-sm text-body-sm text-on-surface-variant truncate">{{ portfolio.user.username }}</p>
+              </div>
+            </div>
+            <div class="flex justify-between items-center mt-auto pt-xs border-t border-outline-variant">
+              {% if portfolio.template %}
+              <span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded truncate">{{ portfolio.template.name }}</span>
+              {% else %}
+              <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-xs py-0.5 rounded">Custom</span>
+              {% endif %}
+              <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">visibility</span> {{ portfolio.views_count }}
+              </span>
+            </div>
+          </div>
+        </a>
+        {% endwith %}
+        {% empty %}
+        {% for portfolio in recent_portfolios %}
+        {% with idx=forloop.counter0 %}
+        <a href="{% url 'portfolio_detail' portfolio.slug %}" class="card-hover rounded-xl bg-surface-container-lowest border border-outline-variant flex flex-col cursor-pointer shadow-sm group overflow-hidden">
+          <div class="h-28 relative overflow-hidden portfolio-preview-gradient-{{ idx }} flex items-end p-sm">
+            <div class="absolute inset-0 bg-black/10"></div>
+            <span class="gradient-letter relative z-10 font-display text-[40px] font-bold leading-none select-none">{{ portfolio.user.username|first|upper }}</span>
+          </div>
+          <div class="p-sm flex flex-col gap-xs flex-grow">
+            <div class="flex items-center gap-xs">
+              {% if portfolio.user.avatar %}
+              <img src="{{ portfolio.user.avatar.url }}" class="w-8 h-8 rounded-full object-cover shrink-0" alt="{{ portfolio.user.username }}"/>
+              {% else %}
+              <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 text-white font-bold text-body-sm">{{ portfolio.user.username|first|upper }}</div>
+              {% endif %}
+              <div class="min-w-0">
+                <h4 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors truncate">{{ portfolio.title }}</h4>
+                <p class="font-body-sm text-body-sm text-on-surface-variant truncate">by {{ portfolio.user.username }}</p>
+              </div>
+            </div>
+            <div class="flex justify-between items-center mt-auto pt-xs border-t border-outline-variant">
+              <span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">visibility</span> {{ portfolio.views_count }}
+              </span>
+              <span class="material-symbols-outlined text-on-surface-variant text-[18px]">arrow_outward</span>
+            </div>
+          </div>
+        </a>
+        {% endwith %}
+        {% endfor %}
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div class="flex flex-col items-center justify-center py-xl border border-dashed border-outline-variant rounded-xl text-center">
+        <span class="material-symbols-outlined text-[48px] text-outline mb-md">work_outline</span>
+        <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">No portfolios yet</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mb-md">Be the first to share your work!</p>
+        <a href="{% url 'portfolio_create' %}" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-full transition-colors">Create Portfolio</a>
+      </div>
+      {% endif %}
+
+      <!-- How it Works -->
+      <div class="mt-md">
+        <div class="flex items-center justify-between pb-xs border-b border-outline-variant mb-md">
+          <h2 class="font-headline-sm text-headline-sm text-on-background">How It Works</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-sm">
+          <div class="flex flex-col items-start gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">account_circle</span>
+            </div>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">1. Create Account</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Sign up for free and set up your professional profile in minutes.</p>
+            </div>
+          </div>
+          <div class="flex flex-col items-start gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">dashboard_customize</span>
+            </div>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">2. Build Portfolio</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Choose a template, add your projects, skills, and testimonials.</p>
+            </div>
+          </div>
+          <div class="flex flex-col items-start gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary">share</span>
+            </div>
+            <div>
+              <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">3. Share & Connect</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Publish your portfolio and engage with the community forum.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Trending Discussions -->
+    <aside class="lg:col-span-4 xl:col-span-3 flex flex-col gap-md">
+
+      <!-- Trending Discussions -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm overflow-hidden sticky top-24 z-40">
+        <!-- Widget header -->
+        <div class="flex items-center justify-between px-md pt-md pb-sm border-b border-outline-variant">
+          <div class="flex items-center gap-xs">
+            <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <span class="material-symbols-outlined text-white text-[16px]">trending_up</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">Trending</h3>
+          </div>
+          <a href="{% url 'forum_categories' %}" class="font-label-sm text-label-sm text-primary hover:underline">View all</a>
+        </div>
+        <!-- Thread list -->
+        <div class="flex flex-col divide-y divide-outline-variant">
+          {% for thread in trending_threads %}
+          <a href="{% url 'forum_thread_detail' thread.category.slug thread.slug %}"
+             class="flex items-start gap-sm px-md py-sm group hover:bg-surface-container-low transition-colors">
+            <div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-label-md text-label-md shadow-sm mt-0.5">
+              {{ thread.category.name|first|upper }}{{ thread.category.name|slice:"1:2" }}
+            </div>
+            <div class="flex-grow min-w-0">
+              <p class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors line-clamp-2 leading-snug">{{ thread.title }}</p>
+              <div class="flex items-center gap-xs mt-xs flex-wrap">
+                <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.reply_count }} repl{{ thread.reply_count|pluralize:"y,ies" }}</span>
+                <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.created_at|timesince }} ago</span>
+              </div>
+            </div>
+          </a>
+          {% empty %}
+          <div class="text-center py-lg px-md">
+            <span class="material-symbols-outlined text-outline text-[36px] block mb-xs">forum</span>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">No discussions yet.</p>
+          </div>
+          {% endfor %}
+        </div>
+        <!-- Footer CTA -->
+        <div class="px-md py-sm border-t border-outline-variant">
+          <a href="{% url 'forum_categories' %}" class="block w-full py-sm bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors text-center shadow-sm">
+            Go to Forum
+          </a>
+        </div>
+      </div>
+
+      <!-- Portfolio Templates -->
+      {% if templates %}
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm overflow-hidden">
+        <!-- Widget header -->
+        <div class="flex items-center gap-xs px-md pt-md pb-sm border-b border-outline-variant">
+          <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+            <span class="material-symbols-outlined text-white text-[16px]">dashboard_customize</span>
+          </div>
+          <h3 class="font-headline-sm text-headline-sm text-on-surface">Portfolio Templates</h3>
+        </div>
+        <!-- Template list -->
+        <div class="flex flex-col divide-y divide-outline-variant">
+          {% for template in templates %}
+          <a href="{% url 'portfolio_list' %}?template={{ template.slug }}"
+             class="flex items-center gap-sm px-md py-sm group hover:bg-surface-container-low transition-colors">
+            <div class="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm shrink-0">
+              <span class="material-symbols-outlined text-white text-[16px]">dashboard_customize</span>
+            </div>
+            <span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors flex-grow">{{ template.name }}</span>
+            <span class="material-symbols-outlined text-on-surface-variant text-[16px] group-hover:text-primary transition-colors">arrow_forward</span>
+          </a>
+          {% endfor %}
+        </div>
+        <!-- Footer CTA -->
+        <div class="px-md py-sm border-t border-outline-variant">
+          <a href="{% url 'portfolio_create' %}" class="block w-full py-sm bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors text-center shadow-sm">
+            Start Building
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- CTA Card for guests -->
+      {% if not user.is_authenticated %}
+      <div class="relative overflow-hidden rounded-2xl shadow-sm">
+        <div class="hero-gradient absolute inset-0"></div>
+        <div class="absolute inset-0 opacity-[0.08]" style="background-image: radial-gradient(circle at 2px 2px, #fff 1px, transparent 0); background-size: 20px 20px;"></div>
+        <div class="relative z-10 p-md text-center">
+          <span class="material-symbols-outlined text-white text-[40px] icon-fill block mb-sm">rocket_launch</span>
+          <h3 class="font-headline-sm text-headline-sm text-white mb-xs">Ready to shine?</h3>
+          <p class="font-body-sm text-body-sm text-white/80 mb-md">Join thousands of creators sharing their best work.</p>
+          <a href="{% url 'register' %}" class="block w-full py-sm bg-white text-primary rounded-xl font-label-md text-label-md hover:-translate-y-0.5 transition-all shadow-sm">Join for Free</a>
+        </div>
+      </div>
+      {% endif %}
+
+    </aside>
+  </div>
+</div>
+{% endblock %}

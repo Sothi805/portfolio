@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} – Forum – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto px-margin-mobile py-xl">
+
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-xs text-on-surface-variant font-body-sm text-body-sm mb-lg">
+    <a href="{% url 'forum_categories' %}" class="hover:text-primary transition-colors">Forum</a>
+    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    <span class="text-on-surface">{{ category.name }}</span>
+  </div>
+
+  <!-- Category Header -->
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl p-lg shadow-sm mb-xl">
+    <div class="flex items-start justify-between gap-md">
+      <div class="flex items-center gap-md">
+        <div class="w-14 h-14 rounded-xl bg-primary flex items-center justify-center shadow-md shrink-0">
+          <span class="material-symbols-outlined text-white icon-fill text-[28px]">{{ category.icon }}</span>
+        </div>
+        <div>
+          <h1 class="font-headline-md text-headline-md text-on-background">{{ category.name }}</h1>
+          <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs max-w-lg">{{ category.description }}</p>
+        </div>
+      </div>
+      {% if user.is_authenticated %}
+      <a href="{% url 'forum_create_thread' category.slug %}" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-xl hover:bg-on-primary-fixed-variant transition-colors flex items-center gap-xs shrink-0 shadow-sm">
+        <span class="material-symbols-outlined text-[18px]">add</span> New Thread
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Section heading + count -->
+  <div class="flex items-center justify-between mb-md">
+    <h2 class="font-headline-sm text-headline-sm text-on-surface">Threads</h2>
+    {% if page_obj %}
+    <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-sm py-xs rounded-full">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+    {% endif %}
+  </div>
+
+  <!-- Threads List -->
+  <div class="flex flex-col gap-sm">
+    {% for thread in threads %}
+    <a href="{% url 'forum_thread_detail' category.slug thread.slug %}"
+       class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md hover:border-primary hover:shadow-md transition-all group shadow-sm">
+      <div class="flex items-start justify-between gap-md">
+
+        <!-- Left: title + preview + author -->
+        <div class="flex items-start gap-sm flex-grow min-w-0">
+          {% if thread.is_pinned %}
+          <span class="material-symbols-outlined text-primary shrink-0 icon-fill mt-1 text-[18px]">push_pin</span>
+          {% endif %}
+          <div class="flex-grow min-w-0">
+            <div class="flex items-center gap-xs flex-wrap mb-xs">
+              {% if thread.is_pinned %}
+              <span class="font-label-sm text-label-sm text-primary bg-primary-fixed px-xs py-0.5 rounded-full">Pinned</span>
+              {% endif %}
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors leading-snug">{{ thread.title }}</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-xs line-clamp-1">{{ thread.content|truncatewords:18 }}</p>
+            <!-- Author row -->
+            <div class="flex items-center gap-xs mt-sm flex-wrap">
+              {% if thread.user.avatar %}
+              <img src="{{ thread.user.avatar.url }}" class="w-5 h-5 rounded-full object-cover" alt="{{ thread.user.username }}">
+              {% else %}
+              <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-white text-[9px] font-bold">{{ thread.user.username|first|upper }}</div>
+              {% endif %}
+              <span class="font-label-sm text-label-sm text-on-surface">{{ thread.user.username }}</span>
+              <span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+              <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.created_at|timesince }} ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: stats as a vertical stack of pills -->
+        <div class="flex flex-col items-end gap-xs shrink-0 pt-xs">
+          <div class="flex items-center gap-xs bg-surface-container px-xs py-0.5 rounded-full">
+            <span class="material-symbols-outlined text-[13px] text-on-surface-variant">chat_bubble</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.reply_count }}</span>
+          </div>
+          <div class="flex items-center gap-xs bg-surface-container px-xs py-0.5 rounded-full">
+            <span class="material-symbols-outlined text-[13px] text-on-surface-variant">thumb_up</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.upvotes }}</span>
+          </div>
+          <div class="flex items-center gap-xs bg-surface-container px-xs py-0.5 rounded-full">
+            <span class="material-symbols-outlined text-[13px] text-on-surface-variant">visibility</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">{{ thread.views_count }}</span>
+          </div>
+        </div>
+
+      </div>
+    </a>
+    {% empty %}
+    <div class="flex flex-col items-center justify-center py-xxl text-center border-2 border-dashed border-outline-variant rounded-2xl bg-surface-container-lowest">
+      <span class="material-symbols-outlined text-[64px] text-outline mb-md">forum</span>
+      <h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">No threads yet</h3>
+      <p class="font-body-sm text-body-sm text-on-surface-variant mb-lg">Be the first to start a discussion!</p>
+      {% if user.is_authenticated %}
+      <a href="{% url 'forum_create_thread' category.slug %}" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-xl transition-colors shadow-sm flex items-center gap-xs">
+        <span class="material-symbols-outlined text-[18px]">add</span> Start Discussion
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+  <div class="flex justify-center items-center gap-xs mt-xl">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="flex items-center gap-xs px-md py-xs border border-outline-variant rounded-xl hover:border-primary hover:text-primary transition-colors font-label-md text-label-md">
+      <span class="material-symbols-outlined text-[16px]">chevron_left</span> Prev
+    </a>
+    {% endif %}
+    <span class="px-md py-xs bg-primary text-on-primary rounded-xl font-label-md text-label-md">
+      {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+    </span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="flex items-center gap-xs px-md py-xs border border-outline-variant rounded-xl hover:border-primary hover:text-primary transition-colors font-label-md text-label-md">
+      Next <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}My Profile – ProPortfolio{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-xl">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter items-start">
+
+    <!-- Profile Card (sidebar) -->
+    <aside class="lg:col-span-1 flex flex-col gap-md">
+      <!-- Avatar + info card -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm overflow-hidden">
+        <!-- Cover banner -->
+        <div class="h-24 relative overflow-hidden">
+          <div class="hero-gradient absolute inset-0"></div>
+          <div class="absolute inset-0 opacity-[0.07]" style="background-image: radial-gradient(circle at 2px 2px, #fff 1px, transparent 0); background-size: 16px 16px;"></div>
+        </div>
+        <div class="px-md pb-md -mt-10 relative">
+          {% if profile_user.avatar %}
+            <img src="{{ profile_user.avatar.url }}" class="w-20 h-20 rounded-full object-cover border-4 border-surface-container-lowest shadow-md" alt="Avatar"/>
+          {% else %}
+            <div class="w-20 h-20 rounded-full bg-primary border-4 border-surface-container-lowest shadow-md flex items-center justify-center text-3xl font-bold text-white">{{ profile_user.username|first|upper }}</div>
+          {% endif %}
+          <h2 class="font-headline-sm text-headline-sm text-on-background mt-sm">{{ profile_user.username }}</h2>
+          <p class="font-body-sm text-body-sm text-on-surface-variant">{{ profile_user.email }}</p>
+          {% if profile_user.bio %}
+          <p class="font-body-sm text-body-sm text-on-surface mt-sm leading-relaxed">{{ profile_user.bio }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Stats mini -->
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm p-md">
+        <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-md">Your Stats</h3>
+        <div class="grid grid-cols-2 gap-sm">
+          <div class="text-center p-sm bg-surface-container rounded-xl">
+            <p class="font-headline-sm text-headline-sm font-bold text-primary">{{ profile_user.portfolios.count }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Portfolios</p>
+          </div>
+          <div class="text-center p-sm bg-surface-container rounded-xl">
+            <p class="font-headline-sm text-headline-sm font-bold text-on-surface">{{ profile_user.threads.count }}</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Threads</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="bg-surface-container border border-outline-variant rounded-xl p-md">
+        <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">Quick Links</h3>
+        <div class="flex flex-col gap-xs">
+          <a href="{% url 'portfolio_dashboard' %}" class="flex items-center gap-sm py-xs text-on-surface hover:text-primary transition-colors font-body-sm text-body-sm">
+            <span class="material-symbols-outlined text-[18px]">dashboard</span> My Dashboard
+          </a>
+          <a href="{% url 'portfolio_create' %}" class="flex items-center gap-sm py-xs text-on-surface hover:text-primary transition-colors font-body-sm text-body-sm">
+            <span class="material-symbols-outlined text-[18px]">add_circle</span> New Portfolio
+          </a>
+          <a href="{% url 'forum_leaderboard' %}" class="flex items-center gap-sm py-xs text-on-surface hover:text-primary transition-colors font-body-sm text-body-sm">
+            <span class="material-symbols-outlined text-[18px]">leaderboard</span> Leaderboard
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Edit Form -->
+    <div class="lg:col-span-2">
+      <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm p-lg">
+        <div class="flex items-center gap-sm mb-lg pb-md border-b border-outline-variant">
+          <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
+            <span class="material-symbols-outlined text-white">edit</span>
+          </div>
+          <div>
+            <h1 class="font-headline-md text-headline-md text-on-background">Edit Profile</h1>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">Update your personal information</p>
+          </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="flex flex-col gap-md">
+          {% csrf_token %}
+
+          <!-- Avatar upload -->
+          <div class="flex items-center gap-md p-md bg-surface-container rounded-xl">
+            <div class="avatar-drop-zone shrink-0" id="avatar-drop-zone" title="Click to change avatar">
+              <input type="file" name="avatar" accept="image/*" id="avatar-input"/>
+              {% if profile_user.avatar %}
+                <img src="{{ profile_user.avatar.url }}" id="avatar-preview" class="w-16 h-16 rounded-full object-cover border-2 border-primary" alt="Avatar"/>
+              {% else %}
+                <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-white" id="avatar-default">{{ profile_user.username|first|upper }}</div>
+                <img src="" id="avatar-preview" class="w-16 h-16 rounded-full object-cover border-2 border-primary hidden" alt="Avatar"/>
+              {% endif %}
+              <div class="avatar-overlay">
+                <span class="material-symbols-outlined text-white text-[20px]">photo_camera</span>
+              </div>
+            </div>
+            <div>
+              <label class="block font-label-md text-label-md text-on-surface mb-xs">Profile Picture</label>
+              <p class="font-label-sm text-label-sm text-on-surface-variant mb-xs">JPG, PNG or GIF (max 5MB)</p>
+              <p class="font-label-sm text-label-sm text-primary" id="avatar-filename"></p>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="block font-label-md text-label-md text-on-surface mb-xs">Username</label>
+            <input type="text" name="username" value="{{ profile_user.username }}" class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary text-body-md"/>
+          </div>
+
+          <!-- Email (readonly) -->
+          <div>
+            <label class="block font-label-md text-label-md text-on-surface mb-xs">Email Address</label>
+            <div class="relative">
+              <input type="email" value="{{ profile_user.email }}" disabled class="w-full px-sm py-xs border border-outline-variant rounded-lg bg-surface-container text-on-surface-variant pr-xl"/>
+              <span class="absolute right-sm top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-[16px]">lock</span>
+            </div>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Email cannot be changed</p>
+          </div>
+
+          <!-- Bio -->
+          <div>
+            <label class="block font-label-md text-label-md text-on-surface mb-xs">Bio</label>
+            <textarea name="bio" rows="4" placeholder="Tell the community about yourself..." class="w-full px-sm py-xs border border-outline-variant rounded-lg focus:outline-none focus:border-primary text-body-md resize-none">{{ profile_user.bio }}</textarea>
+            <p class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Brief description for your profile</p>
+          </div>
+
+          <div class="flex gap-sm pt-md border-t border-outline-variant">
+            <button type="submit" class="font-label-md text-label-md bg-primary text-on-primary px-lg py-sm rounded-lg hover:bg-on-primary-fixed-variant hover:-translate-y-0.5 transition-all shadow-sm flex items-center gap-xs">
+              <span class="material-symbols-outlined text-[18px]">save</span> Save Changes
+            </button>
+            <a href="{% url 'portfolio_dashboard' %}" class="font-label-md text-label-md border border-outline-variant text-on-surface px-lg py-sm rounded-lg hover:bg-surface-container transition-colors">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  const avatarInput = document.getElementById('avatar-input');
+  const avatarPreview = document.getElementById('avatar-preview');
+  const avatarDefault = document.getElementById('avatar-default');
+  const avatarFilename = document.getElementById('avatar-filename');
+
+  if (avatarInput) {
+    avatarInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Avatar must be under 5 MB.'); this.value = ''; return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        if (avatarPreview) {
+          avatarPreview.src = e.target.result;
+          avatarPreview.classList.remove('hidden');
+        }
+        if (avatarDefault) avatarDefault.classList.add('hidden');
+        if (avatarFilename) avatarFilename.textContent = file.name;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+</script>
+{% endblock %}
+{% endblock %}
